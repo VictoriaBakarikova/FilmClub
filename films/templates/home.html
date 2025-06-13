@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Home - FilmClub{% endblock %}
+{% block content %}
+    <div class="container py-5">
+        <h2 class="mb-4">Welcome back, {{ user.first_name|default:user.username }}</h2>
+    </div>
+<div class="col-md-6 col-lg-4">
+    <div class="card border-0">
+        <h5 class="card-title">Recent films</h5>
+        {% if recent_films %}
+            <ul class="list-unstyled mb-2">
+                {% for film in recent_films %}
+                    <li class="mb-1">
+                        <strong>{{ film.title }}</strong> by {{ film.director }}
+                    </li>
+                {% endfor %}
+            </ul>
+        <a href="#" class="btn btn-sm btn-outline-secondary">See all films</a>
+        {% else %}
+            <p class="text-muted">No films</p>
+        {% endif %}
+    </div>
+</div>
+
+
+
+{% endblock %}

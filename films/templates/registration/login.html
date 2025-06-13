@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Sing In{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="card p-4 shadow-sm" style="width: 100%; max-width: 400px; border-radius: 1rem">
+        <h3 class="text-center mb-4">Sign In</h3>
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="mb-3">
+                    {{ field.label_tag }}
+                    {{ field }}
+                    {% if field.errors %}
+                        <div class="text-danger small">{{ field.errors|striptags }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-success w-100">Log In</button>
+        </form>
+        <p class="text-center mt-3 mb-0">Need an account? <a href="{% url 'signup' %}">Sign In</a>
+        </p>
+    </div>
+</div>
+{% endblock %}
