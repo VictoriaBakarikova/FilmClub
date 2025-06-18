@@ -1,0 +1,9 @@
+{% if movie_folders %}
+    <div class="list-group">
+        {% for folder in movie_folders %}
+            {% include "watching_folder.html" with watching_folder=folder %}
+        {% endfor %}
+    </div>
+{% else %}
+    <p class="text-muted">You haven't added any films yet</p>
+{% endif %}

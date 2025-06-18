@@ -1,27 +1,37 @@
 {% extends "base.html" %}
 {% block title %}Home - FilmClub{% endblock %}
+
 {% block content %}
     <div class="container py-5">
         <h2 class="mb-4">Welcome back, {{ user.first_name|default:user.username }}</h2>
     </div>
-<div class="col-md-6 col-lg-4">
-    <div class="card border-0">
-        <h5 class="card-title">Recent films</h5>
-        {% if recent_films %}
-            <ul class="list-unstyled mb-2">
+
+    <div class="row g-4">
+        <div class="col-md-12 col-lg-6">
+            <div class="list-group">
                 {% for film in recent_films %}
-                    <li class="mb-1">
-                        <strong>{{ film.title }}</strong> by {{ film.director }}
-                    </li>
+                    <div class="list-group-item d-flex border-3 gap-4 align-items-center mb-3">
+                        <img src="{{ film.cover_url }}"
+                             alt="{{ film.title }}"
+                             width="200" height="300"
+                             class="rounded-2 d-block mx-auto"
+                             style="object-fit: contain; border-radius: 8px; background-color: #000;"
+                             onerror="this.onerror=null; this.src='/static/images/video-camera.png'"
+                        />
+                        <div class="flex-grow-1">
+                            <h4 class="mb-1">{{ film.title }}</h4>
+                            <p class="mb-1 text-muted small">{{ film.director }}</p>
+                            <p class="mb-1 text-muted small">{{ film.release }}</p>
+                        </div>
+                    </div>
                 {% endfor %}
-            </ul>
-        <a href="#" class="btn btn-sm btn-outline-secondary">See all films</a>
-        {% else %}
-            <p class="text-muted">No films</p>
-        {% endif %}
+            </div>
+        </div>
     </div>
-</div>
-
-
-
 {% endblock %}
+
+
+
+
+
+

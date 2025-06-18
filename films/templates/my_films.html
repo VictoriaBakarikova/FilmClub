@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}My Films - FilmClub{% endblock %}
+{% block content %}
+    <div class="container py-4">
+        <h2 class="mb-4">My Films</h2>
+    </div>
+    <div id="film-list" class="row row-cols-1 ro-cols-md-2 row-cols-lg-3 g-4">
+        {% include "films_list_page.html" with ovie_folders=movie_folders %}
+    </div>
+    {% if has_next %}
+        <div
+            id="load-more"
+            hx-get="{% url 'my_films' %}?page={{ next_page }}"
+            hx-trigger="revealed"
+            hx-target="#film-list"
+            hx-swap="afterend">
+            class="my-4 text-center text-muted"
+            >
+                Loading more...
+        </div>
+    {% endif %}
+{% endblock %}

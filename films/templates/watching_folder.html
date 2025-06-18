@@ -1,0 +1,23 @@
+<div class="list-group-item d-flex gap-3 align-items-start">
+    <img src="{{ film.cover_url }}"
+        alt="{{ film.title }}"
+        width="200" height="300"
+        class="rounded-2 d-block mx-auto"
+        style="object-fit: contain; border-radius: 8px; background-color: #000;"
+        onerror="this.onerror=null; this.src='/static/images/video-camera.png'"
+    />
+
+    <div class="flex-grow-1">
+        <h5 class="mb-1">
+            {% if watching_folder.film and watching_folder.film.id %}
+                <a href="{% url 'film_details' watching_folder.film.id %}" class="text-decoration-none">
+                    {{ watching_folder.film.title }}
+                </a>
+            {% else %}
+                <span>{{ watching_folder.film.title }}</span>
+            {% endif %}
+
+        </h5>
+        <p class="mb-1 text-muted small">{{ watching_folder.film.director }}</p>
+    </div>
+</div>

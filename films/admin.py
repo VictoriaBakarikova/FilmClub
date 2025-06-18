@@ -1,8 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Film, Tag, UserProfile
-
-
+from .models import Film, Tag, UserProfile, MovieFolder
 
 
 # Register your models here.
@@ -19,6 +17,22 @@ class FilmAdmin(admin.ModelAdmin):
             f"<img src='{film.cover_url}' alt='cover' width='100px' height='100px'/>",
         )
 
+@admin.register(MovieFolder)
+class MovieFolderAdmin(admin.ModelAdmin):
+    list_display = ("film_title", "created_at", "updated_at")
+    ordering = ("film__title",)
+
+    @admin.display(description="Film title")
+    def film_title(self, obj):
+        return obj.film.title
+
+    @admin.display(empty_value="-")
+    def cover(self, folder):
+        if not folder.cover_url:
+            return None
+        return format_html(
+            f"<img src='{folder.cover_url}' alt='cover' width='100px' height='100px'/>",
+        )
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):

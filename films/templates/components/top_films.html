@@ -1,0 +1,42 @@
+<div class="col-md-12 col-lg-12"></div>
+<div class="text-center fs-2 border-2 shadow p-3 mb-5 bg-body-tertiary rounded w-75 mx-auto">
+    <h2>TOP 10 Films</h2>
+    <div id="top_films" class="carousel slide mx-auto text-center" data-bs-ride="carousel">
+
+        <div class="carousel-indicators">
+            {% for film in popular_films %}
+                <button type="button" data-bs-target="#top_films" data-bs-slide-to="{{ forloop.counter0 }}"
+                        class="{% if forloop.first %}active{% endif %}"
+                        aria-current="{% if forloop.first %}true{% endif %}"
+                        aria-label="Slide {{ forloop.counter }}">
+                </button>
+            {% endfor %}
+        </div>
+
+        <div class="carousel-inner">
+            {% for film in popular_films %}
+            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                <img src="{{ film.cover_url }}" class="d-block w-100 mx-auto"
+                     alt="{{ film.title }}"
+                     width="600" height="400"
+                     style="object-fit: cover;">
+                <div class="carousel-caption d-none d-md-block">
+                    <h5>{{ film.title }}</h5>
+                    <p class="text-white">{{ film.director }}</p>
+                    <p>{{ film.release }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <button class="carousel-control-prev" type="button" data-bs-target="#top_films" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon bg-dark" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#top_films" data-bs-slide="next">
+            <span class="carousel-control-next-icon bg-dark" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+</div>
+

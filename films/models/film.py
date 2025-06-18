@@ -9,13 +9,14 @@ class Film(
     UpdatedAtMixin,
     models.Model,
 ):
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255, db_index=True)
     director = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)
     genres = models.CharField(max_length=255, null=True, blank=True)
     rating = models.CharField(max_length=7, null=True, blank=True)
     release = models.IntegerField(null=True, blank=True)
     cover_url = models.URLField(null=True, blank=True)
+    views = models.PositiveIntegerField(default=0)
 
     tags = models.ManyToManyField(
         "Tag",
