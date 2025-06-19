@@ -17,9 +17,27 @@
                 </div>
             {% endfor %}
             <button type="submit" class="btn btn-success w-100">Log In</button>
+            <div id="g_id_onload"
+                 data-client_id="196633259990-ptd6mnfivau4bk81bdgm8i03kdmo2lov.apps.googleusercontent.com"
+                 data-context="signin"
+                 data-ux_mode="popup"
+                 data-login_uri="http://localhost:8000/google-auth"
+                 data-itp_support="true">
+            </div>
+
+            <div class="g_id_signin"
+                 data-type="standard"
+                 data-shape="rectangular"
+                 data-theme="outline"
+                 data-text="signin_with"
+                 data-size="large"
+                 data-logo_alignment="left">
+            </div>
         </form>
         <p class="text-center mt-3 mb-0">Need an account? <a href="{% url 'signup' %}">Sign In</a>
         </p>
     </div>
 </div>
+
+
 {% endblock %}

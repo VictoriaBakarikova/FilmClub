@@ -8,8 +8,11 @@ urlpatterns = [
     path("movie_folders/<int:film_id>/", views.MovieFolder, name="movie_folder"),
     path("films/<int:film_id>/", views.film_details, name="film_details"),
     path("films/my_films/", views.my_films, name="my_films"),
+    path("films/all_films/", views.all_films, name="all_films"),
+    path("all_films/page", views.all_films_page, name="all_films_page"),
     path("films/search/", views.search_films, name="search_films"),
     path("auth/signup/", views.signup, name="signup"),
-    path("auth/login/", views.login, name="login"),
+    path("auth/login/", views.LoginView.as_view(template_name="registration/login.html"), name="login"),
     path("auth/logout/", LogoutView.as_view(), name="logout"),
+    path("google-auth/", views.google_auth, name="google-auth"),
 ]

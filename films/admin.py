@@ -7,7 +7,37 @@ from .models import Film, Tag, UserProfile, MovieFolder
 @admin.register(Film)
 class FilmAdmin(admin.ModelAdmin):
     list_display = ("title", "director", "created_at", "updated_at")
+    list_filter = ("created_at", "updated_at")
+    search_fields = ("title",)
     ordering = ("title",)
+    readonly_fields = ("created_at", "updated_at")
+
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": (
+                    "title",
+                    "director",
+                    "tags",
+                    "description",
+                    "cover_url",
+                    "genres",
+                    "rating",
+                    "release",
+                    "views",
+                )
+            }
+
+        ),
+        (
+            "Metadata",
+            {
+                "fields": ("created_at", "updated_at"),
+                "classes": ("collapse",)
+            }
+        )
+    )
 
     @admin.display(empty_value="-")
     def cover(self, film):

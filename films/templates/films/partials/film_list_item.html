@@ -1,0 +1,21 @@
+<div class="list-group-item d-flex gap-3 align-items-start">
+    <img src="{{ film.cover_url }}"
+        alt="{{ film.title }}"
+        width="60" height="90"
+        class="rounded-2 d-block mx-auto"
+        style="object-fit: contain; border-radius: 8px; background-color: #000;"
+        onerror="this.onerror=null; this.src='/static/images/video-camera.png'"
+    />
+
+    <div class="flex-grow-1">
+        <h5 class="mb-1">
+          <a href="{% url 'film_details' film.id %}" class="text-decoration-none">
+                    {{ film.title }}
+          </a>
+        </h5>
+        <p class="mb-1 text-muted small">{{ film.director }}</p>
+        {% for tag in film.tags.all %}
+            <span class="badge text-bg-dark">{{ tag.name }}</span>
+        {% endfor %}
+    </div>
+</div>

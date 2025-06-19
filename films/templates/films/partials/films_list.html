@@ -1,0 +1,15 @@
+{% for film in films %}
+    {% include 'films/partials/film_list_item.html' with film=film %}
+{% endfor %}
+
+ {% if films.has_next %}
+    <div
+        id="load-more"
+        hx-get="{% url 'all_films_page' %}?page={{ films.next_page }}{% for t in selected_tags %}&tags[]={{ t }}{% endfor %}"
+        hx-trigger="revealed"
+        hx-target="this"
+        hx-swap="outerHTML">
+    >
+        <div class="spinner-border text-secondary" role="status"></div>
+    </div>
+{% endif %}

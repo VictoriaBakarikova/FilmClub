@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}All Films - FilmClub{% endblock %}
+{% block content %}
+    <div class="container py-4">
+        <h2 class="mb-4">All Films</h2>
+    </div>
+
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title">Filter by tags</h5>
+            <div id="tag-filter" class="mb-4">
+                {% for tag in tags %}
+                    <span class="badge text-bg-dark tag-badge" role="button" data-tag="{{ tag.id }}">
+                        {{ tag.name }} <span class="text-light small">({{ tag.film_count }})</span>
+                    </span>
+                {% endfor %}
+            </div>
+            <div class="mb-3 mt-3">
+                <button id="clear-tag-filters-btn" class="badge bg-light text-dark border d-none">
+                    Clear Filters
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <div
+            id="film-list"
+            hx-get="{% url 'all_films_page' %}?page={{ next_page }}"
+            hx-trigger="load"
+            hx-target="this"
+            hx-swap="innerHTML"
+
+    ></div>
+
+<form
+        id="filter-form"
+        hx-get="{% url 'all_films_page' %}"
+        hx-target="#film-list"
+        hx-swap="innerHTML"
+        class="d-none"
+></form>
+
+<script>
+    const tagBadges = document.querySelectorAll(".tag-badge");
+    const form = document.getElementById("filter-form");
+    const clearTagBtn = document.getElementById("clear-tag-filters-btn");
+
+    function updateFormSubmit() {
+        form.innerHTML = "";
+        const activeTagBadge = document.querySelectorAll(".tag-badge.bg-primary");
+        clearTagBtn.classList.toggle("d-none", activeTagBadge.length === 0)
+
+
+        activeTagBadge.forEach(activeTagBadge => {
+                const id = activeTagBadge.dataset.tag;
+                form.innerHTML += `<input type="hidden" name="tags[]" value="${id}">` ;
+
+        })
+
+        const list = document.getElementById("film-list");
+        const spinners = list.querySelectorAll("[hx-trigger='revealed']");
+        spinners.forEach(el => el.remove());
+        list.innerHTML = "";
+
+        form.requestSubmit();
+
+    }
+
+    tagBadges.forEach(tagBadge => {
+        tagBadge.addEventListener("click", () => {
+            tagBadge.classList.toggle("bg-primary");
+            tagBadge.classList.toggle("bg-dark");
+            updateFormSubmit()
+        })
+    });
+
+    clearTagBtn.addEventListener("click", () => {
+        tagBadges.forEach(tagBadge => {
+            tagBadge.classList.remove("bg-primary");
+            tagBadge.classList.add("bg-dark");
+        });
+        updateFormSubmit();
+    });
+
+</script>
+{% endblock %}
+
