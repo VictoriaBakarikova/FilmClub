@@ -9,10 +9,14 @@ class MovieFolder(
     UpdatedAtMixin,
     models.Model
 ):
+    WATCH = "watch"
+    WATCHING = "watching"
+    WANT = "want"
+
     STATUS_CHOICES = [
-        ("watch", "Watch"),
-        ("watching", "Watching"),
-        ("want", "Want to watch"),
+        (WATCH, "Watch"),
+        (WATCHING, "Watching"),
+        (WANT, "Want to watch"),
     ]
 
     user = models.ForeignKey(
@@ -25,7 +29,10 @@ class MovieFolder(
         Film,
         related_name="folder",
         on_delete=models.PROTECT,
+        null=False,
     )
+    added_at = models.DateTimeField(auto_now_add=True)
+
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
@@ -53,5 +60,11 @@ class MovieFolder(
 
     def __str__(self):
         return f"{self.user.username} - {self.film.title} ({self.status})"
+
+    @property
+    def is_watching(self) -> bool:
+        return self.status == self.WATCHING
+
+
 
 

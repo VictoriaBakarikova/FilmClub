@@ -1,0 +1,18 @@
+<form
+    hx-post="{% url 'toggle_comment_like' comment.id %}"
+    hx-target="#like-btn-{{ comment.id }}"
+    hx-swap="outerHTML"
+>
+    {% csrf_token %}
+    <button
+        class="btn btn-sm btn-outline-secondary"
+        id="like-btn-{{ comment.id }}"
+        type="submit"
+    >
+        {% if liked %}
+            <i class="bi bi-heart-fill"></i> {{ comment.likes_count }}
+        {% else %}
+            <i class="bi bi-heart"></i> {{ comment.likes_count }}
+        {% endif %}
+    </button>
+</form>

@@ -1,7 +1,9 @@
+from .coments import Comment, CommentLike
 from .film import Film
 from .tag import Tag
 from .user_profile import UserProfile
 from .movie_folder import MovieFolder
+
 
 
 __all__ = [
@@ -9,4 +11,6 @@ __all__ = [
     "Tag",
     "UserProfile",
     "MovieFolder",
+    "Comment",
+    "CommentLike",
 ]

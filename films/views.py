@@ -8,14 +8,14 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from django.db.models import Q, Count
 from django.core.paginator import Paginator
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import redirect, render, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from google.oauth2 import id_token
 from google.auth.transport import requests
 
 from .forms import SignUpForm, LoginForm
-from .models import Film, MovieFolder, Tag
+from .models import Film, Comment, CommentLike, MovieFolder, Tag
 
 
 # Create your views here.
@@ -26,37 +26,17 @@ def index(request):
 def home(request):
     all_films = Film.objects.order_by('-updated_at')
     page_number = request.GET.get('page', 1)
+
     paginator = Paginator(all_films, PAGE_SIZE)
     page = paginator.page(page_number)
+
     return shortcuts.render(
         request,
-        "home.html",
+    "home.html",
         {
-            "films": page,
-            "has_next": page.has_next(),
-            "next_page": (
-                page.next_page_number()
-                if page.has_next()
-                else None,
-            )
+            "films": all_films[:10],
         }
     )
-
-
-
-
-
-    # found_films = Film.objects.order_by('-created_at')[:5]
-    # popular_films = Film.objects.order_by('-views')[:5]
-    # recent_films = Film.objects.order_by("-created_at")[:10]
-    # context = {
-    #     "found_films" : found_films,
-    #     "popular_films": popular_films,
-    #     "recent_films": recent_films,
-    # }
-    # return render(request,
-    #               "home.html",
-    #               context)
 
 def increase_views(request, film_id):
     film = get_object_or_404(Film, id=film_id)
@@ -65,7 +45,9 @@ def increase_views(request, film_id):
     return shortcuts.render(
         request,
         "home.html",
-        {"film": film})
+        {"film": film
+         }
+    )
 
 def signup(request):
     if request.method == "POST":
@@ -136,14 +118,19 @@ def create_movie_folder(request, film_id):
 @login_required
 def film_details(request, film_id):
     film = get_object_or_404(Film, id=film_id)
+    movie_folders = MovieFolder.objects.filter(user=request.user, film=film).first()
     return shortcuts.render(
         request,
         "film_details.html",
-        {"film": film
+        {"film": film,
+         "movie_folders": movie_folders,
          }
     )
 
 SEARCH_RESULT_LIMIT = 5
+PAGE_SIZE = 10
+TAGS_LIMIT = 10
+
 
 def search_films(request):
     query = request.GET.get("q")
@@ -157,66 +144,14 @@ def search_films(request):
          }
     )
 
-# def film_details(request, film_id):
-#     def film_details(request, film_id):
-#         film = get_object_or_404(Film, id=film_id)
-#         movie_folder = MovieFolder.objects.filter(film=request.user, id=film.id).first()
-#         return shortcuts.render(
-#             request,
-#             "film_details.html",
-#             {
-#                 "film": film,
-#                 "movie_folder": movie_folder,
-#             }
-#         )
-
-PAGE_SIZE = 10
 
 @login_required
 def my_films(request):
-    movie_folder = (
-        MovieFolder.objects
-        .filter(user=request.user)
-        .select_related("film")
-    )
-
-    page_number = request.GET.get("page", 1)
-    paginator = Paginator(movie_folder, PAGE_SIZE)
-    page = paginator.get_page(page_number)
-
-    if request.headers.get('HX-Request') == 'true':
-        return shortcuts.render(
-            request,
-            "films_list_page.html",
-            {
-                "movie_folders": page,
-            }
-        )
-
-    popular_films = Film.objects.order_by("-views")[:SEARCH_RESULT_LIMIT]
-    return shortcuts.render(
-        request,
-        "my_films.html",
-        {
-            "movie_folders": page,
-            "popular_films": popular_films,
-            "has_next":page.has_next(),
-            "next_page":(
-                page.next_page_number()
-                if page.has_next()
-                else None
-            )
-        }
-    )
-
-TAGS_LIMIT = 10
-
-def all_films(request):
     tags = (
         Tag.objects
         .annotate(film_count=Count("films"))
         .order_by("-film_count")
-        [:TAGS_LIMIT]
+        [: TAGS_LIMIT]
     )
 
     return shortcuts.render(
@@ -224,14 +159,15 @@ def all_films(request):
         "films/all_films.html",
         {
             "tags": tags,
-         }
+            "my_films": True
+        }
     )
 
-def all_films_page(request):
+def my_films_page(request):
     page_number = request.GET.get("page", 1)
     tag_ids = request.GET.getlist("tags[]")
-
     films_q = Film.objects.prefetch_related("tags")
+    films_q = films_q.watching_movies(user=request.user).prefetch_related("tags")
     if tag_ids:
         films_q = films_q.filter(tags__id__in=tag_ids).distinct()
 
@@ -247,4 +183,92 @@ def all_films_page(request):
         }
     )
 
+def all_films(request):
+    tags = (
+        Tag.objects
+        .annotate(film_count=Count("films"))
+        .order_by("-film_count")
+        [:TAGS_LIMIT]
+    )
+
+    return shortcuts.render(
+        request,
+        "films/all_films.html",
+        {
+            "tags": tags,
+            "my_films": False
+         }
+    )
+
+def all_films_page(request):
+    page_number = request.GET.get("page", 1)
+    tag_ids = request.GET.getlist("tags[]")
+
+    films_q = Film.objects.prefetch_related("tags")
+
+
+    films_q = films_q.with_movie_folders(user=request.user).prefetch_related("tags")
+    if tag_ids:
+        films_q = films_q.filter(tags__id__in=tag_ids).distinct()
+
+    paginator = Paginator(films_q, PAGE_SIZE)
+    page = paginator.get_page(page_number)
+
+    return shortcuts.render(
+        request,
+        "films/partials/films_list.html",
+        {
+            "films": page,
+            "selected_tags": tag_ids,
+        }
+    )
+
+def add_comment(request, film_id):
+    if request.method != "POST" or not request.user.is_authenticated:
+        return HttpResponseBadRequest()
+
+    film = get_object_or_404(Film, id=film_id)
+    content = request.POST.get("content", "").strip()
+
+    if not content:
+        return HttpResponseBadRequest("Empty comment.")
+
+    Comment.objects.create(film=film, user=request.user, content=content)
+
+    comments = film.comments.order_by("-created_at")
+    return render(request,
+        "films/partials/comments_list.html",
+            {"comments": comments
+             }
+    )
+
+@login_required
+def toggle_comment_like(request, comment_id: int):
+    if request.method != "POST":
+        return HttpResponseBadRequest()
+
+    comment = shortcuts.get_object_or_404(Comment, id=comment_id)
+    try:
+        like, created = CommentLike.objects.get_or_create(
+            user=request.user,
+            comment=comment
+        )
+    except IntegrityError:
+        created = False
+        like = CommentLike.objects.filters(user=request.user, comment=comment).first()
+
+    if not created:
+        like.delete()
+        liked = False
+    else:
+        liked = True
+
+    return shortcuts.render(
+        request,
+        "films/partials/like_button.html",
+        {"comment": comment,
+         "user": request.user,
+         "liked": liked
+         }
+    )
 

@@ -10,10 +10,14 @@
     <div class="flex-grow-1">
         <h5 class="mb-1">
           <a href="{% url 'film_details' film.id %}" class="text-decoration-none">
-                    {{ film.title }}
+              {{ film.title }}
           </a>
         </h5>
         <p class="mb-1 text-muted small">{{ film.director }}</p>
+        {% if film.in_my_folder %}
+            <span class="badge bg-success">🎬In my Films</span>
+        {% endif %}
+
         {% for tag in film.tags.all %}
             <span class="badge text-bg-dark">{{ tag.name }}</span>
         {% endfor %}

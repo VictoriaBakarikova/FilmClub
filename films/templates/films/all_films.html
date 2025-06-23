@@ -2,7 +2,13 @@
 {% block title %}All Films - FilmClub{% endblock %}
 {% block content %}
     <div class="container py-4">
-        <h2 class="mb-4">All Films</h2>
+        <h2 class="mb-4">
+            {% if my_films %}
+                My Films
+            {% else %}
+                All Films
+            {% endif %}
+        </h2>
     </div>
 
     <div class="card mb-4 shadow-sm">
@@ -10,7 +16,7 @@
             <h5 class="card-title">Filter by tags</h5>
             <div id="tag-filter" class="mb-4">
                 {% for tag in tags %}
-                    <span class="badge text-bg-dark tag-badge" role="button" data-tag="{{ tag.id }}">
+                    <span class="badge bg-dark text-bg-dark tag-badge" role="button" data-tag="{{ tag.id }}">
                         {{ tag.name }} <span class="text-light small">({{ tag.film_count }})</span>
                     </span>
                 {% endfor %}
@@ -26,21 +32,32 @@
 
     <div
             id="film-list"
-            hx-get="{% url 'all_films_page' %}?page={{ next_page }}"
+            class="list-group"
+            {% if my_films %}
+                hx-get="{% url 'my_films_page' %}?page={{ next_page }}"
+            {% else %}
+                hx-get="{% url 'all_films_page' %}?page={{ next_page }}"
+            {% endif %}
             hx-trigger="load"
             hx-target="this"
             hx-swap="innerHTML"
-
     ></div>
+
 
 <form
         id="filter-form"
-        hx-get="{% url 'all_films_page' %}"
+        {% if my_films %}
+            hx-get="{% url 'my_films_page' %}"
+        {% else %}
+            hx-get="{% url 'all_films_page' %}"
+        {% endif %}
         hx-target="#film-list"
         hx-swap="innerHTML"
         class="d-none"
 ></form>
 
+
+{% include "components/back_to_top.html" %}
 <script>
     const tagBadges = document.querySelectorAll(".tag-badge");
     const form = document.getElementById("filter-form");

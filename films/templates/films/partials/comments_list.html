@@ -1,0 +1,42 @@
+{% if comments %}
+  {% for comment in comments %}
+<div class="mb-2 p-2 border rounded text-body" xmlns="http://www.w3.org/1999/html">
+      <div class="small text-muted">{{ comment.user.username }} * {{comment.created_at|date }}</div>
+<!--      <p class="mb-0">{{ comment.content|linebreaks }}</p>-->
+      {% if comment.content|length > 100 %}
+      <p id="comment-snippet-{{ comment.id }}">
+        {{ comment.content|truncatechars:100 }}...
+        <a href="#" class="text-primary" onclick="toggleComment({{ comment.id }}); return false;">Show More</a>
+      </p>
+
+      <p id="comment-full-{{ comment.id }}" class="d-none">
+        {{ comment.content }}
+         <a href="#" class="text-primary" onclick="toggleComment({{ comment.id }}); return false;">Show Less</a>
+      </p>
+  {% else %}
+  <p class="mb-0">{{ comment.content|linebreaks }}</p>
+  {% endif %}
+
+  {% if user.is_authenticated %}
+      {% include "films/partials/like_button.html" %}
+  {% else %}
+      <span class="small text-muted">
+          <i class="bi bi-heart"></i>{{ comment.likes_count }}
+      </span>
+  {% endif %}
+</div>
+  {% empty %}
+    <p class="text-muted">No comments yet</p>
+  {% endfor %}
+{% endif %}
+
+<script>
+    function toggleComment(id) {
+      const snippet = document.getElementById(`comment-snippet-${id}`);
+      const full = document.getElementById(`comment-full-${id}`);
+      if (snippet && full) {
+        snippet.classList.toggle("d-none");
+        full.classList.toggle("d-none");
+      }
+    }
+</script>

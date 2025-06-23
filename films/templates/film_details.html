@@ -1,5 +1,63 @@
 {% extends "base.html" %}
 {% block title %}{{ film.title }} - FilmClub{% endblock %}
 {% block content %}
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-md-4 text-center">
+                <img src="{{ film.cover_url }}"
+                    alt="{{ film.title }}"
+                    width="300" height="450"
+                    class="rounded-2 d-block mx-auto mb-5"
+                    style="object-fit: contain; border-radius: 8px; background-color: #000;"
+                    onerror="this.onerror=null; this.src='/static/images/video-camera.png'"
+                />
+            </div>
+            <div class="col-md-8">
+    <h5 class="mb-1">{{ film.title }}</h5>
+    <p><strong>{{ film.director }}</strong></p>
+
+    {% if film.description %}
+        <h2 class="mb-2">Description</h2>
+        <div id="description" class="text-body-mb2">
+            {{ film.description|linebreaks }}
+            <div class="fade-overlay"></div>
+        </div>
+        <!-- TODO: fix btn show more -->
+        <button class="btn btn-link p-0 mt-1 mb-2" id="toggle-description">Show more</button>
+    {% endif %}
+
+    {% load static %}
+
+<div id="comment-section" class="mt-4">
+  <h4>Comments</h4>
+
+  {% if user.is_authenticated %}
+    <form
+      id="comment-form"
+      hx-post="{% url 'add_comment' film.id %}"
+      hx-target="#comments-list"
+      hx-swap="outerHTML"
+      hx-on::after-request="this.reset()"
+      class="mb-3"
+    >
+      {% csrf_token %}
+      <textarea
+        name="content"
+        rows="3"
+        class="form-control"
+        placeholder="Add a comment..."
+      ></textarea>
+      <button type="submit" class="btn btn-primary mt-2">Post</button>
+    </form>
+  {% else %}
+    <p><a href="{% url 'login' %}">Sign In</a> to comment</p>
+  {% endif %}
+
+  <div id="comments-list">
+    {% include "films/partials/comments_list.html" with comments=film.comments.all %}
+  </div>
+</div>
+
+
 
 {% endblock %}
