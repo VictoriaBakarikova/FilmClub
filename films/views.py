@@ -32,14 +32,22 @@ def index(request):
 #     return zip_longest(*args, fillvalue=None)
 
 
-@login_required
 def home(request):
     top_films = Film.objects.annotate(
         avg_rating=Avg("folder__rating")
     ).filter(avg_rating__isnull=False).order_by("-avg_rating")[:10]
 
+    tags = Tag.objects.annotate(
+        film_count=Count("films")).order_by("-film_count")
+
+    all_films = Film.objects.all()
+    recent_comments = Comment.objects.select_related("film", "user").order_by("-created_at")[:10]
+
     return render(request, "home.html", {
         "top_films": top_films,
+        "recent_comments": recent_comments,
+        "all_films": all_films,
+        "tags": tags,
     })
 
 

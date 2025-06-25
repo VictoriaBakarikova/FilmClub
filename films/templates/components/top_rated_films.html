@@ -1,3 +1,4 @@
+{% load static %}
 
 <link
   rel="stylesheet"
@@ -7,37 +8,30 @@
 <div class="container mb-5">
   <h3 class="text-white mb-4">🔥 Top rated films</h3>
 
-  <div class="swiper">
+<div class="swiper">
     <div class="swiper-wrapper">
       {% for film in top_films %}
         <div class="swiper-slide">
-          <div class="
-          card text-white
-          border-0
-          d-flex
-          flex-column
-          justify-content-between"
-          style="width: 160px;
-          height: 350px;
-          background-color: rgba(0, 0, 0, 0.4);
-          backdrop-filter: blur(6px);">
-            <img
-              src="{{ film.cover_url }}"
-              alt="{{ film.title }}"
-              class="card-img-top"
-              style="height: 240px; object-fit: cover;"
-              onerror="this.onerror=null; this.src='/static/images/video-camera.png'"
-            />
-            <div class="card-body p-2">
-              <div>
-              <h6 class="card-title mb-1" style="font-size: 0.95rem;">{{ film.title }}</h6>
-              <p class="card-text mb-0 small text-muted">{{ film.director }}</p>
-              </div>
-              <div class="text-center mt-auto">
-                <p class="card-text mb-0 small">⭐ {{ film.avg_rating|floatformat:1 }}</p>
+          <a href="{% url 'film_details' film.id %}" class="text-decoration-none">
+            <div class="card film-card text-white border-0 d-flex flex-column justify-content-between"
+                 style="width: 160px; height: 350px; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(6px);">
+              <img src="{{ film.cover_url }}"
+                   alt="{{ film.title }}"
+                   class="card-img-top"
+                   style="height: 240px; object-fit: cover;"
+                   onerror="this.onerror=null; this.src='{% static 'images/video-camera.png' %}'" />
+              <div class="card-body d-flex flex-column justify-content-between p-2">
+                <div>
+                  <h6 class="card-title mb-1" style="font-size: 0.95rem;">{{ film.title }}</h6>
+                  <p class="card-text mb-0 small text-muted">{{ film.director }}</p>
+                  <p class="card-text mb-0 small text-muted">{{ film.release }}</p>
+                </div>
+                <div class="text-center mt-auto">
+                  <p class="card-text mb-0 small">⭐ {{ film.avg_rating|floatformat:1 }}</p>
+                </div>
               </div>
             </div>
-          </div>
+          </a>
         </div>
       {% endfor %}
     </div>

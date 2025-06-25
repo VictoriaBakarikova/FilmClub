@@ -1,0 +1,23 @@
+{% load static %}
+
+<h4 class="text-white mb-3">💬 Recent comments</h4>
+<div class="p-3 rounded"
+     style="
+     background-color: rgba(0, 0, 0, 0.4);
+     backdrop-filter: blur(6px);
+     max-height: 550px;
+     overflow-y: auto;
+     box-shadow: 0 0 12px rgba(0,0,0,0.5);">
+  {% for comment in recent_comments %}
+    <div class="mb-3 border-bottom pb-2">
+      <p class="text-dark mb-1" style="font-size: 0.95rem;">{{ comment.user.username }} about
+        <a href="{% url 'film_details' comment.film.id %}" class="text-dark text-decoration-none">
+          {{ comment.film.title }}
+        </a> • <span class="text-muted">{{ comment.created_at|timesince }} ago</span>
+      </p>
+      <p class="text-light mb-0 small">{{ comment.content|truncatewords:20 }}</p>
+    </div>
+  {% empty %}
+    <p class="text-muted">No comments yet</p>
+  {% endfor %}
+</div>
