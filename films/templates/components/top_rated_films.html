@@ -1,0 +1,69 @@
+
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"
+/>
+
+<div class="container mb-5">
+  <h3 class="text-white mb-4">🔥 Top rated films</h3>
+
+  <div class="swiper">
+    <div class="swiper-wrapper">
+      {% for film in top_films %}
+        <div class="swiper-slide">
+          <div class="
+          card text-white
+          border-0
+          d-flex
+          flex-column
+          justify-content-between"
+          style="width: 160px;
+          height: 350px;
+          background-color: rgba(0, 0, 0, 0.4);
+          backdrop-filter: blur(6px);">
+            <img
+              src="{{ film.cover_url }}"
+              alt="{{ film.title }}"
+              class="card-img-top"
+              style="height: 240px; object-fit: cover;"
+              onerror="this.onerror=null; this.src='/static/images/video-camera.png'"
+            />
+            <div class="card-body p-2">
+              <div>
+              <h6 class="card-title mb-1" style="font-size: 0.95rem;">{{ film.title }}</h6>
+              <p class="card-text mb-0 small text-muted">{{ film.director }}</p>
+              </div>
+              <div class="text-center mt-auto">
+                <p class="card-text mb-0 small">⭐ {{ film.avg_rating|floatformat:1 }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+
+    <div class="swiper-button-prev"></div>
+    <div class="swiper-button-next"></div>
+  </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+
+<script>
+  const swiper = new Swiper('.swiper', {
+    slidesPerView: 6,
+    spaceBetween: 20,
+    slidesPerGroup: 1,
+    loop: true,
+    navigation: {
+      nextEl: '.swiper-button-next',
+      prevEl: '.swiper-button-prev',
+    },
+    grabCursor: true,
+    speed: 500,
+  });
+</script>
+

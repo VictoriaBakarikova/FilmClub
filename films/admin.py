@@ -23,7 +23,7 @@ class FilmAdmin(admin.ModelAdmin):
                     "description",
                     "cover_url",
                     "genres",
-                    "rating",
+                    "age_rating",
                     "release",
                     "views",
                 )

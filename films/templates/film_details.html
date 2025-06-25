@@ -11,19 +11,31 @@
                     style="object-fit: contain; border-radius: 8px; background-color: #000;"
                     onerror="this.onerror=null; this.src='/static/images/video-camera.png'"
                 />
+
+                <div id="rating-container">
+                    {% include "films/partials/rating.html" %}
+                </div>
+
+                <div id="folder-action-{{ film.id }}">{% include "films/partials/folder_button.html" with film=film user_folder=user_folder %}
+                </div>
+                <div id="folder-toast-placeholder"></div>
+
+
             </div>
             <div class="col-md-8">
-    <h5 class="mb-1">{{ film.title }}</h5>
+            <h2 class="mb-1">{{ film.title }}</h2>
+                <div id="status-badge-{{ film.id }}">
+                  {% include "films/partials/status_badge.html" with user_folder=user_folder %}
+                </div>
     <p><strong>{{ film.director }}</strong></p>
 
     {% if film.description %}
-        <h2 class="mb-2">Description</h2>
+        <h5 class="mb-2">Description</h5>
         <div id="description" class="text-body-mb2">
             {{ film.description|linebreaks }}
-            <div class="fade-overlay"></div>
+            <div></div>
         </div>
-        <!-- TODO: fix btn show more -->
-        <button class="btn btn-link p-0 mt-1 mb-2" id="toggle-description">Show more</button>
+        <button class="btn btn-link p-0 mt-1 mb-2" id="toggle-description">Show More</button>
     {% endif %}
 
     {% load static %}
@@ -59,5 +71,42 @@
 </div>
 
 
+<script>
+    document.body.addEventListener("htmx:afterRequest", function (event) {
+        const action = event.detail.requestConfig?.parameters?.showToast;
+        if (!action) return;
+
+        let message = "";
+        if (event.detail.requestConfig?.parameters?.showToast === "added") {
+            message = "✅ You have successfully added the movie to folder 'My Films";
+    }
+        else if (event.detail.requestConfig?.parameters?.showToast === "removed") {
+            message = "🗑 You have successfully removed the movie from folder 'My Films";
+    }
+
+        if (message) {
+            const toast = document.createElement("div");
+            toast.className = "alert alert-info fade show";
+            toast.style.transition = "opacity 0.5s ease";
+            toast.textContent = message;
+
+            const placeholder = document.getElementById("folder-toast-placeholder");
+            placeholder.innerHTML = "";
+            placeholder.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove("show");
+                toast.classList.add("opacity-0");
+            }, 2500);
+
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+            document
+                .querySelector("#status-badge-{{ film.id }}")
+                ?.dispatchEvent(new CustomEvent("refresh", {bubbles: true}));
+        }
+  });
+</script>
 
 {% endblock %}

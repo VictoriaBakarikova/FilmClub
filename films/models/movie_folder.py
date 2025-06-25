@@ -1,7 +1,7 @@
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.contrib.auth.models import User
-from films.models.film import Film
+
 from .mixins import UpdatedAtMixin, CreatedAtMixin
 
 class MovieFolder(
@@ -9,12 +9,12 @@ class MovieFolder(
     UpdatedAtMixin,
     models.Model
 ):
-    WATCH = "watch"
+    WATCHED = "watch"
     WATCHING = "watching"
     WANT = "want"
 
     STATUS_CHOICES = [
-        (WATCH, "Watch"),
+        (WATCHED, "Watched"),
         (WATCHING, "Watching"),
         (WANT, "Want to watch"),
     ]
@@ -26,7 +26,7 @@ class MovieFolder(
         null=True
     )
     film = models.ForeignKey(
-        Film,
+        "Film",
         related_name="folder",
         on_delete=models.PROTECT,
         null=False,

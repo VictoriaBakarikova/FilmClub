@@ -1,0 +1,77 @@
+<div
+  id="status-badge-{{ film.id }}"
+  hx-get="{% url 'status_badge_partial' film.id %}"
+  hx-trigger="refresh from:body"
+  hx-swap="outerHTML"
+  hx-target="this"
+  class="dropdown d-inline"
+>
+  {% if user_folder %}
+    <button
+      class="badge dropdown-toggle
+        {% if user_folder.status == 'watch' %}bg-success
+        {% elif user_folder.status == 'watching' %}bg-primary
+        {% elif user_folder.status == 'want' %}bg-warning text-dark
+        {% else %}bg-secondary
+        {% endif %}"
+      type="button"
+      data-bs-toggle="dropdown"
+      aria-expanded="false"
+      style="border: none; cursor: pointer;"
+    >
+      {{ user_folder.get_status_display }}
+    </button>
+
+    <ul class="dropdown-menu">
+      <li>
+        <a class="dropdown-item"
+           hx-post="{% url 'change_status' film.id %}"
+           hx-vals='{"status": "want"}'
+           hx-target="#status-badge-{{ film.id }}"
+           hx-swap="outerHTML">
+          🎯 Want to Watch
+        </a>
+      </li>
+      <li>
+        <a class="dropdown-item"
+           hx-post="{% url 'change_status' film.id %}"
+           hx-vals='{"status": "watch"}'
+           hx-target="#status-badge-{{ film.id }}"
+           hx-swap="outerHTML">
+          ✅ Watched
+        </a>
+      </li>
+      <li>
+        <a class="dropdown-item"
+           hx-post="{% url 'change_status' film.id %}"
+           hx-vals='{"status": "watching"}'
+           hx-target="#status-badge-{{ film.id }}"
+           hx-swap="outerHTML">
+          👁 Watching
+        </a>
+      </li>
+    </ul>
+  {% else %}
+    <button
+      class="badge bg-secondary dropdown-toggle"
+      type="button"
+      data-bs-toggle="dropdown"
+      aria-expanded="false"
+      style="border: none; cursor: pointer;"
+    >
+      Not in folder
+    </button>
+    <ul class="dropdown-menu">
+      <li>
+        <a class="dropdown-item"
+           hx-post="{% url 'change_status' film.id %}"
+           hx-vals='{"status": "want"}'
+           hx-target="#status-badge-{{ film.id }}"
+           hx-swap="outerHTML">
+          ➕ Add to "Want to Watch"
+        </a>
+      </li>
+    </ul>
+  {% endif %}
+</div>
+

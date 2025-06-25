@@ -1,3 +1,4 @@
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
@@ -5,49 +6,42 @@ from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
 from django import shortcuts
 from django.contrib.auth.models import User
-from django.urls import reverse
-from django.db.models import Q, Count
+from django.db.models import Q, Count, Avg
 from django.core.paginator import Paginator
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import redirect, render, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from google.oauth2 import id_token
 from google.auth.transport import requests
+from django.db.models import Avg
+from itertools import zip_longest
 
 from .forms import SignUpForm, LoginForm
 from .models import Film, Comment, CommentLike, MovieFolder, Tag
+from films import utils
 
 
 # Create your views here.
 def index(request):
     return HttpResponse("Hello")
 
+
+
+# def group_in_batches(lst, size):
+#     args = [iter(lst)] * size
+#     return zip_longest(*args, fillvalue=None)
+
+
 @login_required
 def home(request):
-    all_films = Film.objects.order_by('-updated_at')
-    page_number = request.GET.get('page', 1)
+    top_films = Film.objects.annotate(
+        avg_rating=Avg("folder__rating")
+    ).filter(avg_rating__isnull=False).order_by("-avg_rating")[:10]
 
-    paginator = Paginator(all_films, PAGE_SIZE)
-    page = paginator.page(page_number)
+    return render(request, "home.html", {
+        "top_films": top_films,
+    })
 
-    return shortcuts.render(
-        request,
-    "home.html",
-        {
-            "films": all_films[:10],
-        }
-    )
-
-def increase_views(request, film_id):
-    film = get_object_or_404(Film, id=film_id)
-    film.views += 1
-    film.save()
-    return shortcuts.render(
-        request,
-        "home.html",
-        {"film": film
-         }
-    )
 
 def signup(request):
     if request.method == "POST":
@@ -117,13 +111,16 @@ def create_movie_folder(request, film_id):
 
 @login_required
 def film_details(request, film_id):
-    film = get_object_or_404(Film, id=film_id)
-    movie_folders = MovieFolder.objects.filter(user=request.user, film=film).first()
+    film = get_object_or_404(Film, pk=film_id)
+    rating_range = range(1, 6)
+
+    user_folder = MovieFolder.objects.filter(user=request.user, film=film).first()
     return shortcuts.render(
         request,
         "film_details.html",
         {"film": film,
-         "movie_folders": movie_folders,
+         "user_folder": user_folder,
+         "rating_range": rating_range,
          }
     )
 
@@ -144,6 +141,69 @@ def search_films(request):
          }
     )
 
+
+from django.views.decorators.http import require_POST
+from django.http import HttpResponseBadRequest
+
+@login_required
+@require_POST
+def change_status(request, film_id):
+    film = get_object_or_404(Film, pk=film_id)
+    new_status = request.POST.get("status")
+
+    if new_status not in dict(MovieFolder.STATUS_CHOICES).keys():
+        return HttpResponseBadRequest("Invalid status")
+
+    folder, _ = MovieFolder.objects.get_or_create(user=request.user, film=film)
+    folder.status = new_status
+    folder.save()
+
+    return render(
+        request,
+        "films/partials/status_badge.html",
+        {
+        "user_folder": folder,
+        "film": film
+    })
+
+
+@login_required
+def status_badge_partial(request, film_id):
+    film = get_object_or_404(Film, pk=film_id)
+    user_folder = MovieFolder.objects.filter(user=request.user, film=film).first()
+    return render(request, "films/partials/status_badge.html", {
+        "film": film,
+        "user_folder": user_folder
+    })
+
+
+@login_required
+@require_POST
+def add_to_folder(request, film_id):
+    film = get_object_or_404(Film, pk=film_id)
+    status = request.POST.get("status", "want-to-watch")
+
+    folder, created = MovieFolder.objects.get_or_create(
+        user=request.user,
+        film=film,
+        defaults={"status": status}
+    )
+
+    return render(request, "films/partials/folder_button.html", {
+        "film": film,
+        "user_folder": folder,
+    })
+
+@login_required
+@require_POST
+def remove_from_folder(request, film_id):
+    film = get_object_or_404(Film, pk=film_id)
+    MovieFolder.objects.filter(user=request.user, film=film).delete()
+
+    return render(request, "films/partials/folder_button.html", {
+        "film": film,
+        "user_folder": None,
+    })
 
 @login_required
 def my_films(request):
@@ -223,23 +283,28 @@ def all_films_page(request):
         }
     )
 
-def add_comment(request, film_id):
-    if request.method != "POST" or not request.user.is_authenticated:
-        return HttpResponseBadRequest()
 
+
+@login_required
+@require_POST
+def add_comment(request, film_id):
     film = get_object_or_404(Film, id=film_id)
     content = request.POST.get("content", "").strip()
 
     if not content:
         return HttpResponseBadRequest("Empty comment.")
 
-    Comment.objects.create(film=film, user=request.user, content=content)
+    Comment.objects.create(
+        user=request.user,
+        film=film,
+        content=content,
+    )
 
-    comments = film.comments.order_by("-created_at")
-    return render(request,
-        "films/partials/comments_list.html",
-            {"comments": comments
-             }
+    return shortcuts.render(
+        request,
+        "films_details",
+        {"film_id":film_id,
+         }
     )
 
 @login_required
@@ -271,4 +336,61 @@ def toggle_comment_like(request, comment_id: int):
          "liked": liked
          }
     )
+
+@login_required
+@require_POST
+def delete_comment(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+
+    if comment.user != request.user:
+        return HttpResponseForbidden("You can delete only your own comments.")
+
+    comment.delete()
+    messages.success(request, "Комментарий удалён.")
+    return redirect("film_details", film_id=comment.film.id)
+
+
+@login_required
+def rate_film(request, film_id):
+    film = get_object_or_404(Film, id=film_id)
+    movie_folder = MovieFolder.objects.filter(user=request.user, film=film).first()
+
+    if movie_folder is None or movie_folder.status != "watch":
+        return HttpResponseBadRequest("You can rate only films you've watched.")
+
+    if request.method == "POST":
+        rating = int(request.POST.get("rating"))
+        is_new = movie_folder.rating is None
+        movie_folder.rating = rating
+        movie_folder.save()
+
+        if is_new and rating:
+            film.rating_count += 1
+
+        film.average_rating = MovieFolder.objects.filter(
+            film=film, rating__isnull=False
+        ).aggregate(avg=Avg("rating"))["avg"]
+        film.save()
+
+    return render(
+        request,
+        "films/partials/rating.html",
+        {
+            "film": film,
+            "movie_folder": movie_folder,
+            "rating_range": range(1, 6),
+        }
+    )
+
+# def top_rated_films(request):
+#     films = Film.objects.annotate(
+#         avg_rating=Avg("rating__value"),
+#     ).order_by("-avg_rating")[:10]
+#
+#     return render(
+#         request,
+#         "films/components/top_rated_films.html",
+#         {"films": films}
+#     )
+
 

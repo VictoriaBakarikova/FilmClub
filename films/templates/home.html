@@ -2,32 +2,7 @@
 {% block title %}Home - FilmClub{% endblock %}
 
 {% block content %}
-    <div class="container py-5">
-        <h2 class="mb-4">Welcome back, {{ user.first_name|default:user.username }}</h2>
-    </div>
-
-    <div class="row g-4">
-        <div class="col-md-12 col-lg-6">
-            <div class="list-group">
-                {% for film in recent_films %}
-                    <div class="list-group-item d-flex border-3 gap-4 align-items-center mb-3">
-                        <img src="{{ film.cover_url }}"
-                             alt="{{ film.title }}"
-                             width="60" height="90"
-                             class="rounded-2 d-block mx-auto mb-5"
-                             style="object-fit: contain; border-radius: 8px; background-color: #000;"
-                             onerror="this.onerror=null; this.src='/static/images/video-camera.png'"
-                        />
-                        <div class="flex-grow-1">
-                            <h4 class="mb-1">{{ film.title }}</h4>
-                            <p class="mb-1 text-muted small">{{ film.director }}</p>
-                            <p class="mb-1 text-muted small">{{ film.release }}</p>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
+{% include "components/top_rated_films.html" %}
 {% endblock %}
 
 

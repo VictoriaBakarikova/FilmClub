@@ -1,0 +1,28 @@
+{% if user_folder %}
+  <form
+    hx-post="{% url 'remove_from_folder' film.id %}"
+    hx-target="#folder-action-{{ film.id }}"
+    hx-swap="outerHTML"
+    hx-vals='{"showToast": "removed"}'
+    hx-on::afterRequest="htmx.trigger('#status-badge-{{ film.id }}', 'refresh')"
+  >
+    {% csrf_token %}
+    <button type="submit" class="btn btn-outline-danger btn-sm w-100 mt-2">
+      <i class="bi bi-dash-circle"></i> Delete from your Films
+    </button>
+  </form>
+{% else %}
+  <form
+    hx-post="{% url 'add_to_folder' film.id %}"
+    hx-target="#folder-action-{{ film.id }}"
+    hx-swap="outerHTML"
+    hx-vals='{"showToast": "added"}'
+    hx-on::afterRequest="htmx.trigger('#status-badge-{{ film.id }}', 'refresh')"
+  >
+    {% csrf_token %}
+    <input type="hidden" name="status" value="watching" />
+    <button type="submit" class="btn btn-outline-primary btn-sm w-100 mt-2">
+      <i class="bi bi-plus-circle"></i> Add to your Films
+    </button>
+  </form>
+{% endif %}

@@ -21,6 +21,11 @@ class Comment(
     )
 
     content = models.TextField()
+    tagged_user=models.ManyToManyField(
+        User,
+        related_name="tagged_in_comments",
+        blank=True,
+    )
 
     class Meta:
         db_table = "comments"
@@ -48,6 +53,8 @@ class CommentLike(
         on_delete=models.SET_NULL,
         null=True,
     )
+
+
 
     class Meta:
         db_table = "comments_likes"
