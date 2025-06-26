@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}FilmClub{% endblock %}</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-..." crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
@@ -28,6 +29,16 @@
           background-color: transparent !important;
         }
 
+        .minimal-title span {
+          font-size: 2.2rem;
+          color: black;
+          background-color: rgba(255, 255, 255, 0.05);
+          padding: 0.5rem 1rem;
+          border-radius: 1rem;
+          backdrop-filter: blur(10px);
+          font-weight: 300;
+        }
+
         .list-group-item {
             background-color: rgba(0, 0, 0, 0.4);
             backdrop-filter: blur(4px);
@@ -48,6 +59,39 @@
             background: linear-gradient(to right, red, purple, blue);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+        }
+
+        .navbar-search-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .search-form {
+            width: 100%;
+           position: relative;
+        }
+
+        #navbar-search {
+          background: rgba(255, 255, 255, 0.7);
+          border: 1px solid rgba(200, 200, 200, 0.3);
+          backdrop-filter: blur(8px);
+          color: #222;
+        }
+
+        #nav-bar-search-results {
+          position: absolute;
+          top: 100%;
+          left: 0;
+          z-index: 999;
+          width: 100%;
+          background: rgba(255, 255, 255, 0.6);
+          backdrop-filter: blur(8px);
+          border-radius: 0.5rem;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+          max-height: 320px;
+          overflow-y: auto;
+          margin-top: 0.5rem;
         }
 
         #toggle-description {

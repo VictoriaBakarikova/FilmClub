@@ -157,7 +157,9 @@ def search_films(request):
     return shortcuts.render(
         request,
         "components/search_results.html",
-        {"result": result
+        {
+            "result": result,
+            "query": query,
          }
     )
 
@@ -399,16 +401,4 @@ def rate_film(request, film_id):
             "rating_range": range(1, 6),
         }
     )
-
-# def top_rated_films(request):
-#     films = Film.objects.annotate(
-#         avg_rating=Avg("rating__value"),
-#     ).order_by("-avg_rating")[:10]
-#
-#     return render(
-#         request,
-#         "films/components/top_rated_films.html",
-#         {"films": films}
-#     )
-
 

@@ -5,7 +5,7 @@
  {% if films.has_next %}
     <div
         id="load-more"
-        hx-get="{% url 'all_films_page' %}?page={{ films.next_page }}{% for t in selected_tags %}&tags[]={{ t }}{% endfor %}"
+        hx-get="{% url 'all_films_page' %}?page={{ films.next_page_number }}{% for t in selected_tags %}&tags[]={{ t }}{% endfor %}"
         hx-trigger="revealed"
         hx-target="this"
         hx-swap="outerHTML"
