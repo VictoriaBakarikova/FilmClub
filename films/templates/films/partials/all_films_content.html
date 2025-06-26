@@ -1,88 +1,125 @@
 <div class="card mb-4 shadow-sm filter-glass">
-        <div class="card-body">
-            <h5 class="card-title">Filter by tags</h5>
-            <div id="tag-filter" class="mb-4">
-                {% for tag in tags %}
-                    <span class="badge bg-dark text-bg-dark tag-badge" role="button" data-tag="{{ tag.id }}">
-                        {{ tag.name }} <span class="text-light small">({{ tag.film_count }})</span>
-                    </span>
-                {% endfor %}
-            </div>
-            <div class="mb-3 mt-3">
-                <button id="clear-tag-filters-btn" class="badge bg-light text-dark border d-none">
-                    Clear Filters
-                </button>
-            </div>
-        </div>
+  <div class="card-body">
+    <h5 class="card-title">Filter by tags</h5>
+    <div id="tag-filter" class="mb-4">
+      {% for tag in tags %}
+        <span class="badge {% if tag.id in active_tags %}bg-primary{% else %}bg-dark{% endif %} text-bg-dark tag-badge"
+              role="button"
+              data-tag="{{ tag.id }}">
+          {{ tag.name }} <span class="text-light small">({{ tag.film_count }})</span>
+        </span>
+      {% endfor %}
     </div>
+    <div class="mb-3 mt-3">
+      <button id="clear-tag-filters-btn" class="badge bg-light text-dark border d-none">
+        Clear Filters
+      </button>
+    </div>
+  </div>
 
+  <div class="d-flex gap-3 align-items-center flex-wrap mb-3">
+    <button class="btn btn-outline-light btn-sm sort-arrow" data-sort="title_asc">
+      Title ↑
+    </button>
+    <button class="btn btn-outline-light btn-sm sort-arrow" data-sort="year_desc">
+      Year ↓
+    </button>
+    <button class="btn btn-outline-light btn-sm sort-arrow" data-sort="year_asc">
+      Year ↑
+    </button>
+  </div>
 
-    <div
-            id="film-list"
-            class="list-group"
-            {% if my_films %}
-                hx-get="{% url 'my_films_page' %}?page={{ next_page }}"
-            {% else %}
-                hx-get="{% url 'all_films_page' %}?page={{ next_page }}"
-            {% endif %}
-            hx-trigger="load"
-            hx-target="this"
-            hx-swap="innerHTML"
-    ></div>
+  {% if sort %}
+    <p class="text-muted small ps-3">Sort (debug): {{ sort }} | Tags selected: {{ active_tags }}</p>
+  {% endif %}
+</div>
+
+<div
+  id="film-list"
+  class="list-group"
+  {% if my_films %}
+    hx-get="{% url 'my_films_page' %}?page={{ next_page }}"
+  {% else %}
+    hx-get="{% url 'all_films_page' %}?page={{ next_page }}"
+  {% endif %}
+  hx-trigger="load"
+  hx-target="this"
+  hx-swap="innerHTML"
+></div>
 
 <form
-        id="filter-form"
-        {% if my_films %}
-            hx-get="{% url 'my_films_page' %}"
-        {% else %}
-            hx-get="{% url 'all_films_page' %}"
-        {% endif %}
-        hx-target="#film-list"
-        hx-swap="innerHTML"
-        class="d-none"
-></form>
-
+  id="filter-form"
+  {% if my_films %}
+    hx-get="{% url 'my_films_page' %}"
+  {% else %}
+    hx-get="{% url 'all_films_page' %}"
+  {% endif %}
+  hx-target="#film-list"
+  hx-swap="innerHTML"
+  class="d-none"
+>
+  <input type="hidden" name="sort" id="sort-input" value="{{ sort|default:'' }}">
+</form>
 
 {% include "components/back_to_top.html" %}
+
 <script>
-    const tagBadges = document.querySelectorAll(".tag-badge");
-    const form = document.getElementById("filter-form");
-    const clearTagBtn = document.getElementById("clear-tag-filters-btn");
+  const tagBadges = document.querySelectorAll(".tag-badge");
+  const form = document.getElementById("filter-form");
+  const clearTagBtn = document.getElementById("clear-tag-filters-btn");
+  const sortInput = document.getElementById("sort-input");
 
-    function updateFormSubmit() {
-        form.innerHTML = "";
-        const activeTagBadge = document.querySelectorAll(".tag-badge.bg-primary");
-        clearTagBtn.classList.toggle("d-none", activeTagBadge.length === 0);
+  function updateFormTags() {
+    // Удалить старые inputs с тегами
+    form.querySelectorAll('input[name="tags[]"]').forEach(i => i.remove());
 
-        activeTagBadge.forEach(activeTagBadge => {
-            const id = activeTagBadge.dataset.tag;
-            form.innerHTML += `<input type="hidden" name="tags[]" value="${id}">`;
-        });
-
-        const list = document.getElementById("film-list");
-        const spinners = list.querySelectorAll("[hx-trigger='revealed']");
-        spinners.forEach(el => el.remove());
-        list.innerHTML = "";
-
-        form.requestSubmit();
-    }
-
-    tagBadges.forEach(tagBadge => {
-        tagBadge.addEventListener("click", () => {
-            tagBadge.classList.toggle("bg-primary");
-            tagBadge.classList.toggle("bg-dark");
-            updateFormSubmit();
-        });
+    // Добавить активные теги
+    const activeTags = document.querySelectorAll(".tag-badge.bg-primary");
+    activeTags.forEach(tag => {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = "tags[]";
+      input.value = tag.dataset.tag;
+      form.appendChild(input);
     });
 
-    clearTagBtn.addEventListener("click", () => {
-        tagBadges.forEach(tagBadge => {
-            tagBadge.classList.remove("bg-primary");
-            tagBadge.classList.add("bg-dark");
-        });
-        updateFormSubmit();
+    clearTagBtn.classList.toggle("d-none", activeTags.length === 0);
+  }
+
+  function triggerReload() {
+    const list = document.getElementById("film-list");
+    list.querySelectorAll("[hx-trigger='revealed']").forEach(el => el.remove());
+    list.innerHTML = "";
+    form.requestSubmit();
+  }
+
+  tagBadges.forEach(tag => {
+    tag.addEventListener("click", () => {
+      tag.classList.toggle("bg-primary");
+      tag.classList.toggle("bg-dark");
+      updateFormTags();
+      triggerReload();
     });
+  });
+
+  clearTagBtn.addEventListener("click", () => {
+    tagBadges.forEach(tag => {
+      tag.classList.remove("bg-primary");
+      tag.classList.add("bg-dark");
+    });
+    updateFormTags();
+    triggerReload();
+  });
+
+  document.querySelectorAll(".sort-arrow").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const newSort = btn.dataset.sort;
+      sortInput.value = newSort;
+      triggerReload();
+    });
+  });
 </script>
+
 
 
 

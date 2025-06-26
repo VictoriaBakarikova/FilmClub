@@ -18,7 +18,7 @@ from itertools import zip_longest
 
 from .forms import SignUpForm, LoginForm
 from .models import Film, Comment, CommentLike, MovieFolder, Tag
-from films import utils
+from .utils import get_filtered_and_sorted_films
 
 
 # Create your views here.
@@ -27,28 +27,40 @@ def index(request):
 
 
 
-# def group_in_batches(lst, size):
-#     args = [iter(lst)] * size
-#     return zip_longest(*args, fillvalue=None)
-
-
 def home(request):
-    top_films = Film.objects.annotate(
-        avg_rating=Avg("folder__rating")
-    ).filter(avg_rating__isnull=False).order_by("-avg_rating")[:10]
+    all_films, sort, active_tags = get_filtered_and_sorted_films(request)
 
-    tags = Tag.objects.annotate(
-        film_count=Count("films")).order_by("-film_count")
+    top_films = (
+        Film.objects
+        .annotate(avg_rating=Avg("folder__rating"))
+        .filter(avg_rating__isnull=False)
+        .order_by("-avg_rating")[:10]
+    )
 
-    all_films = Film.objects.all()
-    recent_comments = Comment.objects.select_related("film", "user").order_by("-created_at")[:10]
+    tags = (
+        Tag.objects
+        .annotate(film_count=Count("films"))
+        .order_by("-film_count")
+    )
 
-    return render(request, "home.html", {
-        "top_films": top_films,
-        "recent_comments": recent_comments,
-        "all_films": all_films,
-        "tags": tags,
-    })
+    recent_comments = (
+        Comment.objects
+        .select_related("film", "user")
+        .order_by("-created_at")[:10]
+    )
+
+    return render(
+        request,
+        "home.html",
+        {
+            "top_films": top_films,
+            "recent_comments": recent_comments,
+            "all_films": all_films,
+            "tags": tags,
+            "sort": sort,
+            "active_tags": active_tags,
+        }
+    )
 
 
 def signup(request):
@@ -252,32 +264,31 @@ def my_films_page(request):
     )
 
 def all_films(request):
+    all_films, sort, active_tags = get_filtered_and_sorted_films(request)
+
     tags = (
         Tag.objects
         .annotate(film_count=Count("films"))
-        .order_by("-film_count")
-        [:TAGS_LIMIT]
+        .order_by("-film_count")[:TAGS_LIMIT]
     )
 
     return shortcuts.render(
         request,
         "films/all_films.html",
         {
+            "all_films": all_films,
             "tags": tags,
+            "sort": sort,
+            "active_tags": active_tags,
             "my_films": False
          }
     )
 
 def all_films_page(request):
     page_number = request.GET.get("page", 1)
-    tag_ids = request.GET.getlist("tags[]")
 
-    films_q = Film.objects.prefetch_related("tags")
-
-
-    films_q = films_q.with_movie_folders(user=request.user).prefetch_related("tags")
-    if tag_ids:
-        films_q = films_q.filter(tags__id__in=tag_ids).distinct()
+    films_q, sort, active_tags = get_filtered_and_sorted_films(request)
+    films_q = films_q.with_movie_folders(user=request.user)
 
     paginator = Paginator(films_q, PAGE_SIZE)
     page = paginator.get_page(page_number)
@@ -287,11 +298,10 @@ def all_films_page(request):
         "films/partials/films_list.html",
         {
             "films": page,
-            "selected_tags": tag_ids,
+            "selected_tags": active_tags,
+            "sort": sort,
         }
     )
-
-
 
 @login_required
 @require_POST
