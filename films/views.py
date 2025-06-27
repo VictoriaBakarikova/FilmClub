@@ -1,3 +1,4 @@
+from datetime import datetime
 
 from django.conf import settings
 from django.contrib import messages
@@ -14,10 +15,14 @@ from django.views.decorators.csrf import csrf_exempt
 from google.oauth2 import id_token
 from google.auth.transport import requests
 from django.db.models import Avg
+from django.contrib.auth import logout
+from django import forms
 from itertools import zip_longest
+from django.core.exceptions import ObjectDoesNotExist
 
-from .forms import SignUpForm, LoginForm
-from .models import Film, Comment, CommentLike, MovieFolder, Tag
+from .forms import AddFilmForm
+from .forms import SignUpForm, LoginForm, AvatarUploadForm
+from .models import Film, Comment, CommentLike, MovieFolder, Tag, Profile
 from .utils import get_filtered_and_sorted_films
 
 
@@ -32,9 +37,8 @@ def home(request):
 
     top_films = (
         Film.objects
-        .annotate(avg_rating=Avg("folder__rating"))
-        .filter(avg_rating__isnull=False)
-        .order_by("-avg_rating")[:10]
+        .filter(average_rating__isnull=False)
+        .order_by("-average_rating")[:10]
     )
 
     tags = (
@@ -59,11 +63,12 @@ def home(request):
             "tags": tags,
             "sort": sort,
             "active_tags": active_tags,
+            "form": AddFilmForm(),
         }
     )
 
-
 def signup(request):
+    print("🧩 MY signup view is active!")
     if request.method == "POST":
         form = SignUpForm(request.POST)
         if form.is_valid():
@@ -75,21 +80,12 @@ def signup(request):
             return redirect("home")
         else:
             print(f"error: {form.errors}")
-            return shortcuts.render(
-                request,
-                "registration/signup.html",
-                {"form": form
-                 }
-            )
-    return shortcuts.render(
-        request,
-        "registration/signup.html",
-        {"form": SignUpForm()
-         }
-    )
+            return render(request, "registration/signup.html", {"form": form})
+    return render(request, "registration/signup.html", {"form": SignUpForm()})
+
 
 class LoginView(auth_views.LoginView):
-    next_page = "/films/home"
+    next_page = "/home"
     form_class = LoginForm
 
 @csrf_exempt
@@ -116,8 +112,43 @@ def google_auth(request):
 
     return shortcuts.redirect("/films/home")
 
-class LogoutView(auth_views.LogoutView):
-    next_page = "/films"
+def goodbye_logout(request):
+    logout(request)
+    return render(
+        request,
+        "registration/goodbye.html"
+    )
+
+@login_required
+def profile(request):
+    try:
+        profile = request.user.profile
+    except Profile.DoesNotExist:
+        profile = Profile.objects.create(user=request.user)
+
+
+
+    if request.method == "POST":
+        form = AvatarUploadForm(request.POST, request.FILES, instance=profile)
+        if form.is_valid():
+            form.save()
+            return redirect('profile')
+    else:
+        form = AvatarUploadForm(instance=profile)
+
+    films = Film.objects.filter(added_by=request.user)
+    comments = Comment.objects.filter(author=request.user)
+
+    return render(
+        request,
+        "profile.html",
+        {
+            "form": form,
+            "avatar_url": profile.get_avatar_url(),
+            "films": films,
+            "comments": comments,
+        }
+    )
 
 @login_required
 def create_movie_folder(request, film_id):
@@ -305,6 +336,42 @@ def all_films_page(request):
         }
     )
 
+
+
+@login_required
+def add_film(request):
+    current_year = datetime.now().year
+    years = list(range(current_year, 1895, - 1))
+
+    if request.method == 'POST':
+        form = AddFilmForm(request.POST, request.FILES)
+        if form.is_valid():
+            film = form.save(commit=False)
+            film.added_by = request.user
+            film.save()
+            form.save_m2m()
+            return HttpResponse(status=204)
+        return render(
+            request,
+            'films/add_film.html',
+            {
+                "form": form,
+                "years": years,
+            }, status=400
+        )
+    else:
+        form = AddFilmForm()
+    return render(
+        request,
+        'films/add_film.html',
+        {
+            'form': form,
+            'years': years,
+         }
+    )
+
+
+
 @login_required
 @require_POST
 def add_comment(request, film_id):
@@ -315,7 +382,7 @@ def add_comment(request, film_id):
         return HttpResponseBadRequest("Empty comment.")
 
     Comment.objects.create(
-        user=request.user,
+        author=request.user,
         film=film,
         content=content,
     )

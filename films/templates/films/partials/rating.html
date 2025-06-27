@@ -29,7 +29,9 @@
     {% if film.average_rating %}
       <span class="text-muted small">{{ film.average_rating|floatformat:1 }} / 5</span>
     {% else %}
+    {% if user.is_authenticated %}
       <span class="text-muted small">Not rated yet! Be first!</span>
+    {% endif %}
     {% endif %}
   </form>
 

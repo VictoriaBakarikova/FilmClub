@@ -22,6 +22,13 @@ urlpatterns = [
     path("films/search/", views.search_films, name="search_films"),
     path("auth/signup/", views.signup, name="signup"),
     path("auth/login/", views.LoginView.as_view(template_name="registration/login.html"), name="login"),
-    path("auth/logout/", LogoutView.as_view(), name="logout"),
+    path("auth/logout/", views.goodbye_logout, name="logout"),
     path("google-auth/", views.google_auth, name="google-auth"),
+    path("profile/", views.profile, name="profile"),
+    path("add-film/", views.add_film, name="add_film"),
+
 ]
+from django.conf import settings
+from django.conf.urls.static import static
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

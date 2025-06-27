@@ -1,0 +1,127 @@
+
+<div class="modal fade" id="addFilm" tabindex="-1" aria-labelledby="addFilmLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content glass-card p-3">
+      <div class="modal-header border-0">
+        <h5 class="modal-title" id="addFilmLabel">Add a New Film</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <form
+        method="post"
+        id="add-film-form"
+        hx-post="{% url 'add_film' %}"
+        hx-target="body"
+        hx-swap="none"
+        hx-on="htmx:afterOnLoad: resetAddFilmForm"
+      >
+        <div class="modal-body">
+          {% csrf_token %}
+
+          <div class="mb-3">
+            {{ form.title.label_tag }}
+            {{ form.title }}
+          </div>
+
+          <div class="mb-3">
+            {{ form.director.label_tag }}
+            {{ form.director }}
+          </div>
+
+          <div class="mb-3">
+            {{ form.release.label_tag }}
+            {{ form.release }}
+          </div>
+
+
+          <div class="mb-3">
+            {{ form.description.label_tag }}
+            {{ form.description }}
+          </div>
+
+          <div class="mb-3">
+            {{ form.age_rating.label_tag }}
+            {{ form.age_rating }}
+          </div>
+
+          <div class="mb-3">
+            {{ form.cover_url.label_tag }}
+            {{ form.cover_url }}
+          </div>
+
+          <div class="mb-3 text-center">
+            <img id="coverPreview" src="" alt="Poster Preview"
+                 class="img-fluid rounded shadow-sm"
+                 style="max-height: 240px; display: none;">
+          </div>
+
+          <div class="mb-3">
+            {{ form.tags.label_tag }}
+            {{ form.tags }}
+          </div>
+        </div>
+
+        <div class="modal-footer border-0">
+          <button type="submit" class="btn btn-primary w-100">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<div id="toast-container"
+     style="position: fixed; top: 16px; right: 16px; z-index: 9999;"></div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const coverInput = document.getElementById("id_cover_url");
+    const coverPreview = document.getElementById("coverPreview");
+
+    if (coverInput && coverPreview) {
+      coverInput.addEventListener("input", () => {
+        const url = coverInput.value;
+        if (url && url.startsWith("http")) {
+          coverPreview.src = url;
+          coverPreview.style.display = "block";
+        } else {
+          coverPreview.style.display = "none";
+        }
+      });
+    }
+  });
+
+  function resetAddFilmForm() {
+    const form = document.getElementById("add-film-form");
+    if (form) form.reset();
+
+    const preview = document.getElementById("coverPreview");
+    if (preview) preview.style.display = "none";
+
+    const modalEl = document.getElementById("addFilm");
+    const modalInstance = bootstrap.Modal.getInstance(modalEl);
+    if (modalInstance) modalInstance.hide();
+
+    showToast("🎉 You successfully added a new film!");
+  }
+
+  function showToast(message) {
+    const container = document.getElementById("toast-container");
+    const toast = document.createElement("div");
+
+    toast.className = "toast align-items-center text-white bg-success border-0 show";
+    toast.role = "alert";
+    toast.style = "animation: fadeout 1.5s ease-in-out 3s forwards; padding: 1rem; margin-bottom: 10px; border-radius: 0.5rem;";
+    toast.innerHTML = `
+      <div class="d-flex">
+        <div class="toast-body">${message}</div>
+      </div>`;
+
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 4500);
+  }
+
+  const style = document.createElement("style");
+  style.textContent = `@keyframes fadeout { to { opacity: 0; transform: translateY(-10px); } }`;
+  document.head.appendChild(style);
+</script>

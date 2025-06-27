@@ -1,50 +1,51 @@
 <nav class="navbar sticky-top bg-body-tertiary shadow-lg p-3 mb-5 bg-white rounded navbar-expand-lg border-bottom mb-4">
-    <div class="container-fluid">
-        <h1 class="minimal-title text-center">
-            <a href="{% url 'home' %}" class="text-decoration-none text-black">🎬FilmClub</a>
-        </h1>
+  <div class="container-fluid d-flex justify-content-between align-items-center">
 
+    <h1 class="minimal-title mb-0">
+      <a href="{% url 'home' %}" class="text-decoration-none text-black">🎬FilmClub</a>
+    </h1>
 
+    <div class="d-flex align-items-center gap-3">
+      <ul class="navbar-nav me-3 flex-row">
+        {% if user.is_authenticated %}
+        <li class="nav-item">
+          <a class="nav-link text-black" href="{% url 'my_films' %}">My films</a>
+        </li>
+        {% endif %}
+        <li class="nav-item">
+          <a class="nav-link text-black" href="{% url 'all_films' %}">All films</a>
+        </li>
+      </ul>
 
-        <ul class="navbar-nav px-4 me-auto mb-2 mb-lg-0">
-            {% if user.is_authenticated %}
-            <li class="nav-item">
-                <a class="nav-link navbar-brand text-decoration-none text-black" href="{% url 'my_films' %}">
-                    My films
-                </a>
-            </li>
-            {% endif %}
-            <li class="nav-item">
-                <a class="nav-link navbar-brand text-decoration-none text-black" href="{% url 'all_films' %}">
-                    All films
-                </a>
-            </li>
-        </ul>
-
-        <div class="navbar-search-container mx-auto">
-            <form class="d-flex position-relative " role="search">
-                <input
-                        type="text"
-                        name="q"
-                        id="navbar-search"
-                        class="form-control rounded-pill px-4 py-2"
-                        placeholder="Search films..."
-                        hx-get="{% url 'search_films' %}"
-                        hx-trigger="input changed delay:200ms, keyup[key=='Enter'], load"
-                        hx-target="#nav-bar-search-results"
-                        hx-indicator=".htmx-indicator"
-                        autocomplete="off" />
-                <div id="nav-bar-search-results" class="filter-glass"></div>
-            </form>
-        </div>
-
-            {% if user.is_authenticated %}
-                <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
-
-            {% else %} <a class="nav-link" href="{% url 'login' %}">Sign In</a>
-            <a class="nav-link" href="{% url 'signup' %}">Sign Up</a>
-            {% endif %}
-            <button class="btn btn-sm btn-outline-secondary theme-toggle" id="themeToggle">&#127763</button>
-        </div>
+      <form class="position-relative" role="search">
+        <input
+          type="text"
+          name="q"
+          id="navbar-search"
+          class="form-control rounded-pill px-4 py-2 wide-search"
+          placeholder="Search films..."
+          hx-get="{% url 'search_films' %}"
+          hx-trigger="input changed delay:200ms, keyup[key=='Enter'], load"
+          hx-target="#nav-bar-search-results"
+          hx-indicator=".htmx-indicator"
+          autocomplete="off"
+        />
+        <div id="nav-bar-search-results" class="filter-glass"></div>
+      </form>
     </div>
+
+    <div class="d-flex align-items-center gap-2">
+      {% if user.is_authenticated %}
+        <a class="nav-link" href="{% url 'profile' %}" title="My Profile">
+          <i class="bi bi-person-circle fs-5"></i>
+        </a>
+        <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
+      {% else %}
+        <a class="nav-link" href="{% url 'login' %}">Sign In</a>
+        <a class="nav-link" href="{% url 'signup' %}">Sign Up</a>
+      {% endif %}
+      <button class="btn btn-sm btn-outline-secondary theme-toggle" id="themeToggle" title="Toggle theme">🌗</button>
+    </div>
+
+  </div>
 </nav>

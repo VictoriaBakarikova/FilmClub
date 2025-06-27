@@ -19,6 +19,13 @@ class Comment(
         on_delete=models.SET_NULL,
         null=True,
     )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="my_comments",
+        null=True,
+        blank=True
+    )
 
     content = models.TextField()
     tagged_user=models.ManyToManyField(

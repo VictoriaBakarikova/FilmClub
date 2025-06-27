@@ -130,6 +130,40 @@
         .star-rating button:hover ~ button i {
             color: #ffcc00;
         }
+        .glass-card {
+            max-width: 500px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.15) !important;
+            backdrop-filter: blur(12px);
+            border-radius: 1rem;
+            box-shadow: 0 0 24px rgba(0, 0, 0, 0.2) !important;
+            color: #000;
+        }
+
+        .glass-card input {
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 0.5rem;
+        }
+
+        .glass-card h2 {
+            font-weight: 600;
+        }
+
+        .logout-glass {
+            max-width: 600px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            border-radius: 1rem;
+            box-shadow: 0 0 24px rgba(0, 0, 0, 0.2);
+            color: #000;
+            }
+
+        .wide-search {
+            width: 700px !important;
+            max-width: 100%;
+        }
+
 
         .card.filter-glass {
             background-color: rgba(0, 0, 0, 0.4);
@@ -139,6 +173,16 @@
             border-radius: 12px;
             color: white;
         }
+        .glass-container {
+            max-width: 600px;
+            margin: auto;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 0 24px rgba(0, 0, 0, 0.15);
+        }
+
 
         .tag-badge {
             background-color: rgba(255, 255, 255, 0.1);
@@ -164,7 +208,32 @@
             z-index: 20000;
         }
 
+        .add-film-button {
+          position: fixed;
+          bottom: 24px;
+          right: 24px;
+          width: 60px;
+          height: 60px;
+          border-radius: 50%;
+          background: #111;
+          color: white;
+          font-size: 36px;
+          font-weight: bold;
+          border: none;
+          box-shadow: 0 0 12px rgba(0, 0, 0, 0.3);
+          z-index: 1055;
+          transition: background 0.3s;
+        }
 
+        .add-film-button:hover {
+          background: #333;
+          cursor: pointer;
+        }
+
+        .add-film-button span {
+          display: inline-block;
+          transform: translateY(-2px);
+        }
 
 
     </style>
@@ -176,6 +245,7 @@
         {% block content %}{% endblock %}
         {% include "components/messages.html" %}
     </main>
+
 
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
@@ -229,5 +299,25 @@
             }
         });
     </script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const coverInput = document.getElementById("id_cover_url");
+        const coverPreview = document.getElementById("coverPreview");
+
+        if (coverInput && coverPreview) {
+          coverInput.addEventListener("input", () => {
+            const url = coverInput.value;
+            if (url && url.startsWith("http")) {
+              coverPreview.src = url;
+              coverPreview.style.display = "block";
+            } else {
+              coverPreview.style.display = "none";
+            }
+          });
+        }
+      });
+    </script>
+
 </body>
 </html>

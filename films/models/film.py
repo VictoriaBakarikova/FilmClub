@@ -49,6 +49,12 @@ class Film(
     release = models.IntegerField(null=True, blank=True)
     cover_url = models.URLField(null=True, blank=True)
     views = models.PositiveIntegerField(default=0)
+    added_by = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="my_films",
+        null=True,
+        blank=True)
 
 
 
