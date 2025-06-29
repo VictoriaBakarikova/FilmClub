@@ -1,112 +1,129 @@
 {% extends "base.html" %}
+
 {% block title %}{{ film.title }} - FilmClub{% endblock %}
+
 {% block content %}
-    <div class="container py-5">
-        <div class="row">
-            <div class="col-md-4 text-center">
-                <img src="{{ film.cover_url }}"
-                    alt="{{ film.title }}"
-                    width="300" height="450"
-                    class="rounded-2 d-block mx-auto mb-5"
-                    style="object-fit: contain; border-radius: 8px; background-color: #000;"
-                    onerror="this.onerror=null; this.src='/static/images/video-camera.png'"
-                />
+<div class="container py-5">
+  <div class="row">
+    <div class="col-md-4 text-center">
+      <img src="{{ film.cover_url }}"
+           alt="{{ film.title }}"
+           width="300" height="450"
+           class="rounded-2 d-block mx-auto mb-5"
+           style="object-fit: contain; border-radius: 8px; background-color: #000;"
+           onerror="this.onerror=null; this.src='/static/images/video-camera.png'" />
 
-                <div id="rating-container">
-                    {% include "films/partials/rating.html" %}
-                </div>
+      <div id="rating-container">
+        {% include "films/partials/rating.html" %}
+      </div>
 
-                <div id="folder-action-{{ film.id }}">{% include "films/partials/folder_button.html" with film=film user_folder=user_folder %}
-                </div>
-                <div id="folder-toast-placeholder"></div>
+      <div id="folder-action-{{ film.id }}">
+        {% include "films/partials/folder_button.html" with film=film user_folder=user_folder %}
+      </div>
 
+      <div id="folder-toast-placeholder"></div>
+    </div>
 
-            </div>
-            <div class="col-md-8">
-            <h2 class="mb-1">{{ film.title }}</h2>
-                <div id="status-badge-{{ film.id }}">
-                  {% include "films/partials/status_badge.html" with user_folder=user_folder %}
-                </div>
-    <p><strong>{{ film.director }}</strong></p>
+    <div class="col-md-8">
+      <h2 class="mb-1">{{ film.title }}</h2>
 
-    {% if film.description %}
+      <div id="status-badge-{{ film.id }}">
+        {% include "films/partials/status_badge.html" with user_folder=user_folder %}
+      </div>
+
+      <p><strong>{{ film.director }}</strong></p>
+
+      {% if film.description %}
         <h5 class="mb-2">Description</h5>
         <div id="description" class="text-body-mb2">
-            {{ film.description|linebreaks }}
-            <div></div>
+          {{ film.description|linebreaks }}
+          <div></div>
         </div>
         <button class="btn btn-link p-0 mt-1 mb-2" id="toggle-description">Show More</button>
-    {% endif %}
+      {% endif %}
 
-    {% load static %}
+      {% load static %}
 
-<div id="comment-section" class="mt-4">
-  <h4>Comments</h4>
+      <div id="comment-section" class="mt-4">
+        <h4>Comments</h4>
 
-  {% if user.is_authenticated %}
-    <form
-      id="comment-form"
-      hx-post="{% url 'add_comment' film.id %}"
-      hx-target="#comments-list"
-      hx-swap="outerHTML"
-      hx-on::after-request="this.reset()"
-      class="mb-3"
-    >
-      {% csrf_token %}
-      <textarea
-        name="content"
-        rows="3"
-        class="form-control"
-        placeholder="Add a comment..."
-      ></textarea>
-      <button type="submit" class="btn btn-primary mt-2">Post</button>
-    </form>
-  {% else %}
-    <p><a href="{% url 'login' %}">Sign In</a> to comment</p>
-  {% endif %}
+        {% if user.is_authenticated %}
+          <form id="comment-form"
+                hx-post="{% url 'add_comment' film.id %}"
+                hx-target="#comments-list"
+                hx-swap="outerHTML"
+                hx-on::after-request="this.reset()"
+                class="mb-3">
+            {% csrf_token %}
+            <textarea name="content" rows="3" class="form-control" placeholder="Add a comment..."></textarea>
+            <button type="submit" class="btn btn-primary mt-2">Post</button>
+          </form>
+        {% else %}
+          <p>
+            <a href="{% url 'login' %}" class="text-decoration-underline text-dark">Log In</a> or
+            <a href="{% url 'signup' %}" class="text-decoration-underline text-dark">Sign Up</a> to Comment
+          </p>
+        {% endif %}
 
-  <div id="comments-list">
-    {% include "films/partials/comments_list.html" with comments=film.comments.all %}
+        <div id="comments-list">
+          {% include "films/partials/comments_list.html" with comments=film.comments.all %}
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
 
+<div class="modal fade" id="warnRatingModal" tabindex="-1" aria-labelledby="warnRatingModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark text-light border">
+      <div class="modal-header border-0">
+        <h5 class="modal-title" id="warnRatingModalLabel">rating not available</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        To rate a movie add it to the folder <strong>«WATCHED»</strong> 🎬
+        <br><br>
+        <button type="button" class="btn btn-sm btn-outline-light mt-2" data-bs-dismiss="modal">Got It</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-    document.body.addEventListener("htmx:afterRequest", function (event) {
-        const action = event.detail.requestConfig?.parameters?.showToast;
-        if (!action) return;
+  document.body.addEventListener("htmx:afterRequest", function (event) {
+    const action = event.detail.requestConfig?.parameters?.showToast;
+    if (!action) return;
 
-        let message = "";
-        if (event.detail.requestConfig?.parameters?.showToast === "added") {
-            message = "✅ You have successfully added the movie to folder 'My Films";
+    let message = "";
+    if (action === "added") {
+      message = "✅ You have successfully added the movie to folder 'My Films";
+    } else if (action === "removed") {
+      message = "🗑 You have successfully removed the movie from folder 'My Films";
     }
-        else if (event.detail.requestConfig?.parameters?.showToast === "removed") {
-            message = "🗑 You have successfully removed the movie from folder 'My Films";
+
+    if (message) {
+      const toast = document.createElement("div");
+      toast.className = "alert alert-info fade show";
+      toast.style.transition = "opacity 0.5s ease";
+      toast.textContent = message;
+
+      const placeholder = document.getElementById("folder-toast-placeholder");
+      placeholder.innerHTML = "";
+      placeholder.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.remove("show");
+        toast.classList.add("opacity-0");
+      }, 2500);
+
+      setTimeout(() => {
+        toast.remove();
+      }, 3000);
+
+      document.querySelector("#status-badge-{{ film.id }}")
+              ?.dispatchEvent(new CustomEvent("refresh", { bubbles: true }));
     }
-
-        if (message) {
-            const toast = document.createElement("div");
-            toast.className = "alert alert-info fade show";
-            toast.style.transition = "opacity 0.5s ease";
-            toast.textContent = message;
-
-            const placeholder = document.getElementById("folder-toast-placeholder");
-            placeholder.innerHTML = "";
-            placeholder.appendChild(toast);
-
-            setTimeout(() => {
-                toast.classList.remove("show");
-                toast.classList.add("opacity-0");
-            }, 2500);
-
-            setTimeout(() => {
-                toast.remove();
-            }, 3000);
-            document
-                .querySelector("#status-badge-{{ film.id }}")
-                ?.dispatchEvent(new CustomEvent("refresh", {bubbles: true}));
-        }
   });
 </script>
-
 {% endblock %}

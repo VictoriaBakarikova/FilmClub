@@ -64,6 +64,7 @@ def home(request):
             "sort": sort,
             "active_tags": active_tags,
             "form": AddFilmForm(),
+            "my_films": False,
         }
     )
 
@@ -165,7 +166,11 @@ def film_details(request, film_id):
     film = get_object_or_404(Film, pk=film_id)
     rating_range = range(1, 6)
 
-    user_folder = MovieFolder.objects.filter(user=request.user, film=film).first()
+    user_folder = None
+    if request.user.is_authenticated:
+        user_folder = MovieFolder.objects.filter(user=request.user, film=film).first()
+
+
     return shortcuts.render(
         request,
         "film_details.html",
@@ -321,7 +326,9 @@ def all_films_page(request):
     page_number = request.GET.get("page", 1)
 
     films_q, sort, active_tags = get_filtered_and_sorted_films(request)
-    films_q = films_q.with_movie_folders(user=request.user)
+
+    if request.user.is_authenticated:
+        films_q = films_q.with_movie_folders(user=request.user)
 
     paginator = Paginator(films_q, PAGE_SIZE)
     page = paginator.get_page(page_number)
@@ -335,6 +342,7 @@ def all_films_page(request):
             "sort": sort,
         }
     )
+
 
 
 
@@ -387,11 +395,17 @@ def add_comment(request, film_id):
         content=content,
     )
 
+    comments = (
+        Comment.objects
+        .filter(film=film)
+        .select_related("user")
+        .order_by("-created_at")
+    )
+
     return shortcuts.render(
         request,
-        "films_details",
-        {"film_id":film_id,
-         }
+        "films/partials/comments_list.html",
+        {"comments": comments,}
     )
 
 @login_required
@@ -433,7 +447,7 @@ def delete_comment(request, comment_id):
         return HttpResponseForbidden("You can delete only your own comments.")
 
     comment.delete()
-    messages.success(request, "Комментарий удалён.")
+    messages.success(request, "Comment deleted.")
     return redirect("film_details", film_id=comment.film.id)
 
 
@@ -442,7 +456,7 @@ def rate_film(request, film_id):
     film = get_object_or_404(Film, id=film_id)
     movie_folder = MovieFolder.objects.filter(user=request.user, film=film).first()
 
-    if movie_folder is None or movie_folder.status != "watch":
+    if movie_folder is None:
         return HttpResponseBadRequest("You can rate only films you've watched.")
 
     if request.method == "POST":

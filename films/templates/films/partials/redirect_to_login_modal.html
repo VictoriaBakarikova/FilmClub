@@ -1,0 +1,18 @@
+<div class="modal fade" id="authRequiredModal" tabindex="-1" aria-labelledby="authRequiredModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark text-light border">
+      <div class="modal-header border-0">
+        <h5 class="modal-title" id="authRequiredModalLabel">Registration required</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        To add a movie, please
+          <a href="{% url 'login' %}" class="text-decoration-underline text-light">
+           Log In</a>
+          or
+          <a href="{% url 'signup' %}" class="text-decoration-underline text-light">
+          Sign Up</a>.
+      </div>
+    </div>
+  </div>
+</div>

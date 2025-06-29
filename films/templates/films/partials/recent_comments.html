@@ -10,7 +10,11 @@
      box-shadow: 0 0 12px rgba(0,0,0,0.5);">
   {% for comment in recent_comments %}
     <div class="mb-3 border-bottom pb-2">
-      <p class="text-dark mb-1" style="font-size: 0.95rem;">{{ comment.user.username }} about
+      {% if comment.author %}
+        <p class="text-dark mb-1" style="font-size: 0.95rem;">{{ comment.author.username }} about
+      {% else %}
+       <p class="text-dark mb-1" style="font-size: 0.95rem;">[deleted user]* {{ comment.created_at|date }} about
+      {% endif %}
         <a href="{% url 'film_details' comment.film.id %}" class="text-dark text-decoration-none">
           {{ comment.film.title }}
         </a> • <span class="text-muted">{{ comment.created_at|timesince }} ago</span>

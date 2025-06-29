@@ -49,3 +49,31 @@
 
   </div>
 </nav>
+
+<script>
+  document.addEventListener("click", (e) => {
+    const input = document.getElementById("navbar-search");
+    const results = document.getElementById("nav-bar-search-results");
+
+    if (!input || !results) return;
+
+    const clickedInside = input.contains(e.target) || results.contains(e.target);
+    if (!clickedInside) {
+      results.classList.add("d-none");
+    }
+  });
+
+  document.getElementById("navbar-search").addEventListener("focus", () => {
+    const results = document.getElementById("nav-bar-search-results");
+    if (results && results.innerHTML.trim()) {
+      results.classList.remove("d-none");
+    }
+  });
+
+  document.body.addEventListener("htmx:afterSwap", (e) => {
+    if (e.target.id === "nav-bar-search-results") {
+      e.target.classList.remove("d-none");
+    }
+  });
+</script>
+

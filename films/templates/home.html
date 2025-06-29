@@ -19,13 +19,24 @@
 
   </div>
 </div>
-<button class="add-film-button"
-        data-bs-toggle="modal"
-        data-bs-target="#addFilm"
-        title="Add Film">
-  <span>＋</span>
-</button>
-{% include "components/modal_add_film.html" %}
+
+{% if user.is_authenticated %}
+    <button class="add-film-button"
+            data-bs-toggle="modal"
+            data-bs-target="#addFilm"
+            title="Add Film">
+      <span>＋</span>
+    </button>
+    {% include "components/modal_add_film.html" %}
+{% else %}
+    <button class="add-film-button"
+          data-bs-toggle="modal"
+          data-bs-target="#authRequiredModal"
+          title="Sign in to add film">
+    <span>＋</span>
+  </button>
+    {% include "films/partials/redirect_to_login_modal.html" %}
+{% endif %}
 {% endblock %}
 
 

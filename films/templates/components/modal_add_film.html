@@ -13,7 +13,7 @@
         hx-post="{% url 'add_film' %}"
         hx-target="body"
         hx-swap="none"
-        hx-on="htmx:afterOnLoad: resetAddFilmForm"
+        hx-on="htmx:afterRequest: resetAddFilmForm"
       >
         <div class="modal-body">
           {% csrf_token %}
@@ -91,7 +91,9 @@
     }
   });
 
-  function resetAddFilmForm() {
+  window.resetAddFilmForm = function () {
+    console.log("💥 resetAddFilmForm вызвана");
+
     const form = document.getElementById("add-film-form");
     if (form) form.reset();
 
@@ -99,11 +101,20 @@
     if (preview) preview.style.display = "none";
 
     const modalEl = document.getElementById("addFilm");
-    const modalInstance = bootstrap.Modal.getInstance(modalEl);
-    if (modalInstance) modalInstance.hide();
+    const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+    modalInstance.hide();
+
+    document.activeElement.blur();
 
     showToast("🎉 You successfully added a new film!");
-  }
+  };
+
+  document.body.addEventListener("htmx:afterRequest", (evt) => {
+    const form = document.getElementById("add-film-form");
+    if (form && evt.target === form) {
+      resetAddFilmForm();
+    }
+  });
 
   function showToast(message) {
     const container = document.getElementById("toast-container");
