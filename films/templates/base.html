@@ -24,6 +24,11 @@
     <main class="container mt-4">
         {% block content %}{% endblock %}
         {% include "components/messages.html" %}
+
+    <footer class="text-center mt-5 mb-3 text-muted small">
+        © {{ year }} Victoria Bakarikova-Kirichenko. FilmClub Project.
+    </footer>
+
     </main>
 
     <script src="https://accounts.google.com/gsi/client" async defer></script>
