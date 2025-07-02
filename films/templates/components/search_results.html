@@ -1,29 +1,27 @@
-    {% if query %}
-      {% if result %}
-        <ul class="list-group">
-          {% for film in result %}
-            <li class="list-group-item d-flex align-items-center gap-3">
-              <img src="{{ film.cover_url }}"
-                   alt="{{ film.title }}"
-                   width="50" height="75"
-                   class="rounded"
-                   style="object-fit: cover;"
-                   onerror="this.onerror=null; this.src='/static/images/video-camera.png'" />
-              <div>
-                <a href="{% url 'film_details' film.id %}" class="text-decoration-none text-primary-emphasis">
-                  <strong>{{ film.title }}</strong><br>
-                  <small class="text-muted">{{ film.director }}</small>
-                </a>
-              </div>
-            </li>
-          {% endfor %}
-        </ul>
-      {% else %}
-        <p class="text-muted p-2">Not find</p>
-      {% endif %}
-    {% endif %}
-  </div>
-</div>
+{% if query %}
+  {% if result %}
+    <ul class="list-group">
+      {% for film in result %}
+        <li class="list-group-item d-flex align-items-center gap-3">
+          <img src="{{ film.cover_url }}"
+               alt="{{ film.title }}"
+               width="50" height="75"
+               class="rounded"
+               style="object-fit: cover;"
+               onerror="this.onerror=null; this.src='/static/images/video-camera.png'" />
+          <div>
+            <a href="{% url 'film_details' film.id %}" class="text-decoration-none text-primary-emphasis">
+              <strong>{{ film.title }}</strong><br>
+              <small class="text-muted">{{ film.director }}</small>
+            </a>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-muted p-2">Not find</p>
+  {% endif %}
+{% endif %}
 
 
 

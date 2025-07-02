@@ -1,6 +1,6 @@
 <div class="card mb-4 shadow-sm filter-glass">
   <div class="card-body">
-    <h5 class="card-title">Filter by tags</h5>
+    <h5 class="card-title">Filter</h5>
     <div id="tag-filter" class="mb-4">
       {% for tag in tags %}
         <span class="badge {% if tag.id in active_tags %}bg-primary{% else %}bg-dark{% endif %} text-bg-dark tag-badge"
@@ -17,9 +17,12 @@
     </div>
   </div>
 
-  <div class="d-flex gap-3 align-items-center flex-wrap mb-3">
+  <div class="d-flex gap-3 align-items-center flex-wrap mb-3 ms-3">
     <button class="btn btn-outline-light btn-sm sort-arrow" data-sort="title_asc">
       Title ↑
+    </button>
+    <button class="btn btn-outline-light btn-sm sort-arrow" data-sort="title_desc">
+      Title ↓
     </button>
     <button class="btn btn-outline-light btn-sm sort-arrow" data-sort="year_desc">
       Year ↓
@@ -70,10 +73,7 @@
   const sortInput = document.getElementById("sort-input");
 
   function updateFormTags() {
-    // Удалить старые inputs с тегами
     form.querySelectorAll('input[name="tags[]"]').forEach(i => i.remove());
-
-    // Добавить активные теги
     const activeTags = document.querySelectorAll(".tag-badge.bg-primary");
     activeTags.forEach(tag => {
       const input = document.createElement("input");

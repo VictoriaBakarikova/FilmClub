@@ -21,6 +21,7 @@
     >
       {{ user_folder.get_status_display }}
     </button>
+    <p class="text-muted small">DEBUG: status = {{ user_folder.status }}</p>
 
     <ul class="dropdown-menu">
       <li>
@@ -28,7 +29,8 @@
            hx-post="{% url 'change_status' film.id %}"
            hx-vals='{"status": "want"}'
            hx-target="#status-badge-{{ film.id }}"
-           hx-swap="outerHTML">
+           hx-swap="outerHTML"
+           hx-on::after-request="document.body.dispatchEvent(new CustomEvent('refresh', { bubbles: true }))">
           🎯 Want to Watch
         </a>
       </li>
@@ -37,7 +39,8 @@
            hx-post="{% url 'change_status' film.id %}"
            hx-vals='{"status": "watch"}'
            hx-target="#status-badge-{{ film.id }}"
-           hx-swap="outerHTML">
+           hx-swap="outerHTML"
+           hx-on::after-request="document.body.dispatchEvent(new CustomEvent('refresh', { bubbles: true }))">
           ✅ Watched
         </a>
       </li>
@@ -46,7 +49,8 @@
            hx-post="{% url 'change_status' film.id %}"
            hx-vals='{"status": "watching"}'
            hx-target="#status-badge-{{ film.id }}"
-           hx-swap="outerHTML">
+           hx-swap="outerHTML"
+           hx-on::after-request="document.body.dispatchEvent(new CustomEvent('refresh', { bubbles: true }))">
           👁 Watching
         </a>
       </li>
@@ -67,7 +71,8 @@
            hx-post="{% url 'change_status' film.id %}"
            hx-vals='{"status": "want"}'
            hx-target="#status-badge-{{ film.id }}"
-           hx-swap="outerHTML">
+           hx-swap="outerHTML"
+           hx-on::after-request="document.body.dispatchEvent(new CustomEvent('refresh', { bubbles: true }))">
           ➕ Add to "Want to Watch"
         </a>
       </li>

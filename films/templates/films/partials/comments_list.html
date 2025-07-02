@@ -1,34 +1,36 @@
-
 {% if comments %}
   {% for comment in comments %}
     <div class="mb-2 p-2 border rounded text-body">
 
-
       <div class="small text-muted">
         {% if comment.author %}
-          {{ comment.author.username }} * {{ comment.created_at|date }}
+          {{ comment.author.username }} • {{ comment.created_at|date }}
         {% else %}
-          [deleted user] * {{ comment.created_at|date }}
+          [deleted user] • {{ comment.created_at|date }}
         {% endif %}
       </div>
 
       {% if comment.content %}
         {% if comment.content|length > 100 %}
-          <p id="comment-snippet-{{ comment.id }}">
-            {{ comment.content|truncatechars:100 }}...
-            <a href="#" class="text-primary" onclick="toggleComment({{ comment.id }}); return false;">Show More</a>
-          </p>
 
+          <div id="comment-snippet-{{ comment.id }}">
+            <p class="mb-0">
+              {{ comment.content|truncatechars:100 }}...
+              <a href="#" class="text-dark text-decoration-none" onclick="toggleComment({{ comment.id }}); return false;">↓↓↓</a>
+            </p>
+          </div>
 
-          <p id="comment-full-{{ comment.id }}" class="d-none">
-            {{ comment.content|linebreaks }}
-            <a href="#" class="text-primary" onclick="toggleComment({{ comment.id }}); return false;">Show Less</a>
-          </p>
+          <div id="comment-full-{{ comment.id }}" style="display: none;">
+            <p class="mb-0">
+              {{ comment.content|linebreaks }}
+              <a href="#" class="text-dark text-decoration-none" onclick="toggleComment({{ comment.id }}); return false;">↑↑↑</a>
+            </p>
+          </div>
+
         {% else %}
           <p class="mb-0">{{ comment.content|linebreaks }}</p>
         {% endif %}
       {% else %}
-
         <p class="text-muted small fst-italic">No content</p>
       {% endif %}
 
@@ -48,19 +50,23 @@
           </form>
         {% endif %}
       </div>
+
     </div>
   {% endfor %}
 {% else %}
   <p class="text-muted">No comments yet</p>
 {% endif %}
 
+
 <script>
   function toggleComment(id) {
     const snippet = document.getElementById(`comment-snippet-${id}`);
     const full = document.getElementById(`comment-full-${id}`);
+
     if (snippet && full) {
-      snippet.classList.toggle("d-none");
-      full.classList.toggle("d-none");
+      const isFullVisible = full.style.display === "block";
+      full.style.display = isFullVisible ? "none" : "block";
+      snippet.style.display = isFullVisible ? "block" : "none";
     }
   }
 </script>

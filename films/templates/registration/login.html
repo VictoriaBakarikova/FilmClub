@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Sign In{% endblock %}
 
+
 {% block content %}
 <div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
   <div class="glass-card p-5 text-center">
@@ -29,9 +30,8 @@
 
       <button type="submit" class="btn btn-dark w-100 mt-3">Sign In</button>
 
-      <!-- Google Sign-In integration -->
       <div id="g_id_onload"
-           data-client_id="196633259990-ptd6mnfivau4bk81bdgm8i03kdmo2lov.apps.googleusercontent.com"
+           data-client_id="{{ google_client_id }}"
            data-context="signin"
            data-ux_mode="popup"
            data-login_uri="http://localhost:8000/google-auth"
@@ -53,4 +53,6 @@
     </p>
   </div>
 </div>
+
+
 {% endblock %}

@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from django.contrib.auth.views import LogoutView
 from . import views
 
@@ -26,6 +26,8 @@ urlpatterns = [
     path("google-auth/", views.google_auth, name="google-auth"),
     path("profile/", views.profile, name="profile"),
     path("add-film/", views.add_film, name="add_film"),
+    path('home/', include('social_django.urls', namespace='social')),
+
 
 ]
 from django.conf import settings

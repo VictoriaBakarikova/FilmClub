@@ -5,7 +5,7 @@
       hx-target="#folder-action-{{ film.id }}"
       hx-swap="outerHTML"
       hx-vals='{"showToast": "removed"}'
-      hx-on::afterRequest="htmx.trigger('#status-badge-{{ film.id }}', 'refresh')"
+      hx-on::after-request="document.body.dispatchEvent(new CustomEvent('refresh', { bubbles: true }))"
     >
       {% csrf_token %}
       <button type="submit" class="btn btn-outline-danger btn-sm w-100 mt-2">

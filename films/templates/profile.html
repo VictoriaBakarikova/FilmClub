@@ -1,12 +1,10 @@
-{{% extends "base.html" %}
+{% extends "base.html" %}
 {% block title %}My Profile{% endblock %}
 {% load widget_tweaks %}
 
 {% block content %}
 <div class="container-fluid">
-
   <div class="d-flex justify-content-end align-items-center gap-4 flex-wrap-reverse mb-5">
-
     <div class="text-dark text-end">
       <h4 class="mb-1">{{ user.get_full_name|default:user.username }}</h4>
       <small class="text-muted">With FilmClub since {{ user.date_joined|date:"F Y" }}</small>
@@ -14,11 +12,9 @@
 
     <form method="post" enctype="multipart/form-data" id="avatar-form">
       {% csrf_token %}
-
       <label for="id_avatar" style="cursor: pointer;">
         {% if avatar_url %}
-          <img src="{{ avatar_url }}"
-               alt="Avatar"
+          <img src="{{ avatar_url }}" alt="Avatar"
                class="rounded-circle shadow"
                width="100" height="100"
                style="object-fit: cover;" />
@@ -29,24 +25,18 @@
           </div>
         {% endif %}
       </label>
-
-      <input type="file"
-             name="avatar"
-             id="id_avatar"
-             accept="image/*"
-             class="d-none" />
+      <input type="file" name="avatar" id="id_avatar" accept="image/*" class="d-none" />
     </form>
   </div>
 
   <div class="row gx-4">
-
-    <!-- 🎬 Фильмы -->
     <div class="col-lg-6 mb-4">
       <div class="glass-card p-4 h-100">
         <h4 class="mb-3">🎬 Added Films</h4>
         {% if films %}
           <ul class="list-group">
-            {% for film in films %}
+            {% for item in films %}
+              {% with film=item.film user_folder=item.user_folder %}
               <li class="list-group-item">
                 <div class="row g-3 align-items-start">
                   <div class="col-md-4 text-center">
@@ -65,10 +55,17 @@
                           {{ film.title }}
                         </a>
                       </h3>
-                      <div id="status-badge-{{ film.id }}">
-                        {% include "films/partials/status_badge.html" with user_folder=user_folder %}
+                      <div
+                        id="status-badge-{{ film.id }}"
+                        hx-get="{% url 'status_badge_partial' film.id %}"
+                        hx-trigger="refresh from:body"
+                        hx-swap="outerHTML"
+                        hx-target="this"
+                      >
+                        {% include "films/partials/status_badge.html" with film=film user_folder=user_folder %}
                       </div>
                     </div>
+
                     <div class="mb-1">
                       {% for tag in film.tags.all %}
                         <span class="badge bg-secondary me-1">{{ tag.name }}</span>
@@ -76,22 +73,25 @@
                         <span class="text-muted small">No tags</span>
                       {% endfor %}
                     </div>
+
                     <p class="mb-1">
                       <strong><i class="bi bi-camera-reels"></i> Director:</strong> {{ film.director }}<br>
                       <strong><i class="bi bi-calendar2-week"></i> Release:</strong> {{ film.release|default:"?" }}<br>
                       <strong><i class="bi bi-star-half"></i> Rating:</strong>
                       <span id="rating-container-{{ film.id }}">
-                        {% include "films/partials/rating.html" with film=film %}
+                        {% include "films/partials/rating.html" with film=film movie_folder=user_folder rating_range=rating_range %}
                       </span>
                     </p>
 
                     <div id="folder-toast-placeholder"></div>
                   </div>
+
                   <div id="folder-action-{{ film.id }}">
                     {% include "films/partials/folder_button.html" with film=film user_folder=user_folder %}
                   </div>
                 </div>
               </li>
+              {% endwith %}
             {% endfor %}
           </ul>
         {% else %}
@@ -100,7 +100,6 @@
       </div>
     </div>
 
-    <!-- 💬 Комментарии -->
     <div class="col-lg-6 mb-4">
       <div class="glass-card p-4 h-100">
         <h4 class="mb-3">💬 My Comments</h4>
@@ -122,7 +121,6 @@
         {% endif %}
       </div>
     </div>
-
   </div>
 </div>
 
@@ -130,7 +128,6 @@
   document.addEventListener("DOMContentLoaded", () => {
     const input = document.getElementById("id_avatar");
     const form = document.getElementById("avatar-form");
-
     if (input && form) {
       input.addEventListener("change", () => {
         if (input.files.length) {
@@ -140,5 +137,4 @@
     }
   });
 </script>
-
 {% endblock %}

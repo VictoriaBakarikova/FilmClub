@@ -1,47 +1,62 @@
 <div id="rating-container">
   {% if user.is_authenticated %}
-    <div class="d-flex align-items-center gap-2">
-      <div class="star-rating d-flex align-items-center gap-1">
+    <div class="d-flex flex-column align-items-start gap-1">
 
-        {% with movie_folder.rating|default:0 as current_rating %}
-          {% for i in rating_range %}
-            <form
-              hx-post="{% url 'rate_film' film.id %}"
-              hx-target="#rating-container"
-              hx-swap="outerHTML"
-              method="POST"
-              class="m-0 p-0 d-inline"
-            >
-              {% csrf_token %}
-              <button
-                type="submit"
-                name="rating"
-                value="{{ i }}"
-                class="btn p-0 border-0 bg-transparent"
-                aria-label="Rate {{ i }}"
+      <div class="d-flex align-items-center gap-2">
+        <div class="star-rating d-flex align-items-center gap-1">
+
+          {% with movie_folder.rating|default:0 as current_rating %}
+            {% for i in rating_range %}
+              <form
+                hx-post="{% url 'rate_film' film.id %}"
+                hx-target="#rating-container"
+                hx-swap="outerHTML"
+                method="POST"
+                class="m-0 p-0 d-inline"
               >
-                {% if current_rating|add:0 >= i %}
-                  <i class="bi bi-star-fill text-warning fs-4"></i>
-                {% else %}
-                  <i class="bi bi-star text-warning fs-4"></i>
-                {% endif %}
-              </button>
-            </form>
-          {% endfor %}
-        {% endwith %}
+                {% csrf_token %}
+                <button
+                  type="submit"
+                  name="rating"
+                  value="{{ i }}"
+                  class="btn p-0 border-0 bg-transparent"
+                  aria-label="Rate {{ i }}"
+                >
+                  {% if current_rating >= i %}
+                    <i class="bi bi-star-fill text-warning fs-4"></i>
+                  {% else %}
+                    <i class="bi bi-star text-warning fs-4"></i>
+                  {% endif %}
+                </button>
+              </form>
+            {% endfor %}
+          {% endwith %}
 
+        </div>
+
+        {% if movie_folder.rating %}
+          <span class="text-white small">
+            You rated: {{ movie_folder.rating }} / 5
+          </span>
+        {% else %}
+          <span class="text-white small">Rate this film!</span>
+        {% endif %}
       </div>
 
-      {% if film.average_rating %}
-        <span class="text-muted small">
-          {{ film.average_rating|floatformat:1 }} / 5
-        </span>
-      {% else %}
-        <span class="text-muted small">Not rated yet! Be first!</span>
-      {% endif %}
+      <div>
+        {% if film.average_rating %}
+          <span class="text-white text-center">
+            {{ film.average_rating|floatformat:1 }} ⭐
+          </span>
+        {% else %}
+          <span class="text-white small">Not rated yet</span>
+        {% endif %}
+      </div>
+
     </div>
   {% else %}
     <p class="text-muted small">Log in to rate this film</p>
   {% endif %}
 </div>
+
 

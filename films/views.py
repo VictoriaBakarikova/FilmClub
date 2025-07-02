@@ -1,5 +1,4 @@
 from datetime import datetime
-
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
@@ -9,7 +8,7 @@ from django import shortcuts
 from django.contrib.auth.models import User
 from django.db.models import Q, Count, Avg
 from django.core.paginator import Paginator
-from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse, HttpResponseForbidden
 from django.shortcuts import redirect, render, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from google.oauth2 import id_token
@@ -19,10 +18,12 @@ from django.contrib.auth import logout
 from django import forms
 from itertools import zip_longest
 from django.core.exceptions import ObjectDoesNotExist
+from django.views.decorators.http import require_POST
+from django.http import HttpResponseBadRequest
 
 from .forms import AddFilmForm
 from .forms import SignUpForm, LoginForm, AvatarUploadForm
-from .models import Film, Comment, CommentLike, MovieFolder, Tag, Profile
+from .models import Film, Comment, CommentLike, MovieFolder, Tag, Profile, movie_folder
 from .utils import get_filtered_and_sorted_films
 
 
@@ -69,49 +70,74 @@ def home(request):
     )
 
 def signup(request):
-    print("🧩 MY signup view is active!")
     if request.method == "POST":
         form = SignUpForm(request.POST)
         if form.is_valid():
-            form.save()
-            username = form.cleaned_data["username"]
-            password = form.cleaned_data["password1"]
-            user = authenticate(request, username=username, password=password)
+            user = form.save()
             login(request, user)
             return redirect("home")
         else:
             print(f"error: {form.errors}")
-            return render(request, "registration/signup.html", {"form": form})
-    return render(request, "registration/signup.html", {"form": SignUpForm()})
+    else:
+        form = SignUpForm()
+    return render(
+        request,
+        "registration/signup.html",
+        {"form": form})
 
 
 class LoginView(auth_views.LoginView):
-    next_page = "/home"
+    template_name = "registration/login.html"
     form_class = LoginForm
+    redirect_authenticated_user = True
+    next_page = "home"
+
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["google_client_id"] = settings.GOOGLE_OAUTH_CLIENT_ID
+        return context
 
 @csrf_exempt
 def google_auth(request):
     token = request.POST.get("credential")
 
-    try:
-        user_data = id_token.verify_oauth2_token(
-            token, requests.Request(), settings.GOOGLE_CLIENT_ID
-        )
-    except ValueError:
-        messages.error(request, "Try again")
-        return shortcuts.render(
+    if not token:
+        return render(
             request,
             "registration/login.html",
-        )
-    user = User.objects.acreate_user(
-        username=user_data.get("username"),
-        email=user_data.get("email"),
-        first_name=user_data.get("first_name"),
-        last_name=user_data.get("last_name"),
-    )
-    user.save()
+            {
+            "error": "Try again."
+        })
 
-    return shortcuts.redirect("/films/home")
+    try:
+        user_data = id_token.verify_oauth2_token(
+            token,
+            requests.Request(),
+            settings.GOOGLE_OAUTH_CLIENT_ID
+        )
+    except ValueError:
+        return render(
+            request,
+            "registration/login.html",
+            {
+            "error": "Authorization failed. Try again."
+        })
+
+    email = user_data.get("email")
+    name = user_data.get("name", "")
+    first_name = name.split()[0] if name else ""
+    last_name = ' '.join(name.split()[1:]) if len(name.split()) > 1 else ""
+    username = email.split("@")[0]
+
+    user, created = User.objects.get_or_create(email=email, defaults={
+        "username": username,
+        "first_name": first_name,
+        "last_name": last_name,
+    })
+
+    login(request, user)
+    return redirect("home")
 
 def goodbye_logout(request):
     logout(request)
@@ -127,7 +153,7 @@ def profile(request):
     except Profile.DoesNotExist:
         profile = Profile.objects.create(user=request.user)
 
-
+    films = Film.objects.filter(added_by=request.user)
 
     if request.method == "POST":
         form = AvatarUploadForm(request.POST, request.FILES, instance=profile)
@@ -137,8 +163,17 @@ def profile(request):
     else:
         form = AvatarUploadForm(instance=profile)
 
+    film_data = []
+    for film in films:
+        folder = MovieFolder.objects.filter(user=request.user,film=film).first()
+        film_data.append({
+            "film": film,
+            "user_folder": folder,
+        })
+
     films = Film.objects.filter(added_by=request.user)
     comments = Comment.objects.filter(author=request.user)
+
 
     return render(
         request,
@@ -146,7 +181,7 @@ def profile(request):
         {
             "form": form,
             "avatar_url": profile.get_avatar_url(),
-            "films": films,
+            "films": film_data,
             "comments": comments,
         }
     )
@@ -166,16 +201,17 @@ def film_details(request, film_id):
     film = get_object_or_404(Film, pk=film_id)
     rating_range = range(1, 6)
 
-    user_folder = None
+    movie_folder = None
     if request.user.is_authenticated:
-        user_folder = MovieFolder.objects.filter(user=request.user, film=film).first()
+        movie_folder = MovieFolder.objects.filter(user=request.user, film=film).first()
 
 
     return shortcuts.render(
         request,
         "film_details.html",
         {"film": film,
-         "user_folder": user_folder,
+         "movie_folder": movie_folder,
+         "user_folder": movie_folder,
          "rating_range": rating_range,
          }
     )
@@ -200,9 +236,6 @@ def search_films(request):
     )
 
 
-from django.views.decorators.http import require_POST
-from django.http import HttpResponseBadRequest
-
 @login_required
 @require_POST
 def change_status(request, film_id):
@@ -220,8 +253,9 @@ def change_status(request, film_id):
         request,
         "films/partials/status_badge.html",
         {
-        "user_folder": folder,
-        "film": film
+            "film": film,
+            "user_folder": folder,
+
     })
 
 
@@ -229,10 +263,14 @@ def change_status(request, film_id):
 def status_badge_partial(request, film_id):
     film = get_object_or_404(Film, pk=film_id)
     user_folder = MovieFolder.objects.filter(user=request.user, film=film).first()
-    return render(request, "films/partials/status_badge.html", {
-        "film": film,
-        "user_folder": user_folder
-    })
+    return render(
+        request,
+        "films/partials/status_badge.html",
+        {
+            "film": film,
+            "user_folder": user_folder,
+        }
+    )
 
 
 @login_required
@@ -249,7 +287,7 @@ def add_to_folder(request, film_id):
 
     return render(request, "films/partials/folder_button.html", {
         "film": film,
-        "user_folder": folder,
+        "user_folder": movie_folder,
     })
 
 @login_required
